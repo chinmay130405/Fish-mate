@@ -1,0 +1,26 @@
+/* Leaflet CSS fix for Vite - must be first */
+@import 'leaflet/dist/leaflet.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Test styles */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f8fafc !important;
+}
+
+/* Force ocean colors */
+.bg-ocean-600 {
+  background-color: #0284c7 !important;
+}
+
+.text-ocean-700 {
+  color: #0369a1 !important;
+}

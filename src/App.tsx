@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Home, FileText, AlertTriangle, User } from 'lucide-react'
+import { Routes, Route } from 'react-router-dom';
 import HomePage from './components/HomePage'
 import ReportsPage from './components/ReportsPage'
 import AlertsPage from './components/AlertsPage'
@@ -8,6 +9,7 @@ import ZoneDetailPage from './components/ZoneDetailPage'
 import BottomNavigation from './components/BottomNavigation'
 import AlertNotificationBar from './components/AlertNotificationBar'
 import SOSButton from './components/SOSButton'
+import FullMapPage from './components/FullMapPage';
 
 type Page = 'home' | 'reports' | 'alerts' | 'profile' | 'zone-detail'
 
@@ -53,20 +55,19 @@ function App() {
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Alert Notification Bar */}
       <AlertNotificationBar />
-      
       {/* Header */}
       <header className="bg-ocean-600 text-white p-4 shadow-lg" style={{backgroundColor: '#0284c7', color: 'white'}}>
         <h1 className="text-xl font-bold text-center">Fish Zone Predictor</h1>
       </header>
-
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto pb-16">
-        {renderPage()}
+        <Routes>
+          <Route path="/" element={renderPage()} />
+          <Route path="/map" element={<FullMapPage />} />
+        </Routes>
       </main>
-
       {/* SOS Button */}
       <SOSButton />
-
       {/* Bottom Navigation */}
       <BottomNavigation
         items={navigationItems}

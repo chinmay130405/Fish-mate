@@ -1,9 +1,10 @@
 import { MapPin, Thermometer, Activity, Fish } from 'lucide-react'
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, useMapEvent } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet.heat';
 import { fishingZones, quickStats } from '../data/dummyData'
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom';
 
 // Fix for default markers in react-leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -37,6 +38,14 @@ const HeatmapLayer = ({ points }: { points: any[] }) => {
       if (map._heatLayer) map.removeLayer(map._heatLayer);
     };
   }, [map, points]);
+  return null;
+};
+
+const MapClickRedirect = () => {
+  const navigate = useNavigate();
+  useMapEvent('click', () => {
+    navigate('/map');
+  });
   return null;
 };
 
@@ -120,6 +129,7 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
             zoom={10}
             style={{ height: '100%', width: '100%' }}
           >
+            <MapClickRedirect />
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

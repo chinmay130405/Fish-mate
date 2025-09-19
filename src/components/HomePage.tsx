@@ -7,6 +7,8 @@ import 'leaflet.heat';
 import { fishingZones, quickStats } from '../data/dummyData'
 import { geolocationService } from '../services/geolocationService'
 import type { GPSCoordinate } from '../data/dummyData'
+import { weatherService } from '../services/weatherService'
+import type { FishingSafetyResult } from '../services/weatherService'
 
 interface HomePageProps {
   onZoneClick: (zoneId: string) => void
@@ -68,6 +70,8 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
   const [currentLocation, setCurrentLocation] = useState<GPSCoordinate | null>(null)
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'pending'>('pending')
   const [clusters, setClusters] = useState<any[]>([])
+  const [fishingSafety, setFishingSafety] = useState<FishingSafetyResult | null>(null)
+  const [isFetchingWeather, setIsFetchingWeather] = useState<boolean>(false)
 
   useEffect(() => {
     const initializeLocation = async () => {
@@ -105,6 +109,22 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
       .then(data => setClusters(data))
       .catch(() => setClusters([]))
   }, [])
+
+  useEffect(() => {
+    const fetchWeather = async () => {
+      if (!currentLocation) return
+      try {
+        setIsFetchingWeather(true)
+        const result = await weatherService.getFishingSafety(currentLocation.latitude, currentLocation.longitude)
+        setFishingSafety(result)
+      } catch (err) {
+        setFishingSafety(null)
+      } finally {
+        setIsFetchingWeather(false)
+      }
+    }
+    fetchWeather()
+  }, [currentLocation])
 
   const formatCoordinate = (coord: number, type: 'lat' | 'lng') => {
     const direction = type === 'lat' ? (coord >= 0 ? 'N' : 'S') : (coord >= 0 ? 'E' : 'W')
@@ -158,13 +178,43 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
         </div>
 
         <div className="bg-white rounded-lg p-4 shadow-sm border">
-          <div className="flex items-center space-x-2">
-            <Activity className="text-green-600" size={20} />
-            <div>
-              <p className="text-sm text-gray-600">Weather</p>
-              <p className="text-sm font-semibold text-green-700">{quickStats.weatherStatus}</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Activity className={
+                fishingSafety?.status === 'Safe' ? 'text-green-600' : fishingSafety?.status === 'Unsafe' ? 'text-red-600' : 'text-amber-600'
+              } size={20} />
+              <div>
+                <p className="text-sm text-gray-600">Weather</p>
+                <p className={
+                  `text-sm font-semibold ${
+                    fishingSafety?.status === 'Safe' ? 'text-green-700' : fishingSafety?.status === 'Unsafe' ? 'text-red-700' : 'text-amber-700'
+                  }`
+                }>
+                  {isFetchingWeather && 'Checking...'}
+                  {!isFetchingWeather && fishingSafety?.status || quickStats.weatherStatus}
+                </p>
+              </div>
+            </div>
+            <div className="text-right text-xs text-gray-600">
+              {fishingSafety?.conditions && (
+                <div>
+                  {fishingSafety.conditions.windSpeedMetersPerSecond != null && (
+                    <div>Wind: {fishingSafety.conditions.windSpeedMetersPerSecond.toFixed(1)} m/s</div>
+                  )}
+                  {fishingSafety.conditions.waveHeightMeters != null && (
+                    <div>Waves: {fishingSafety.conditions.waveHeightMeters.toFixed(1)} m</div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
+          {!isFetchingWeather && fishingSafety?.reasons?.length ? (
+            <ul className="mt-2 list-disc list-inside text-xs text-gray-600">
+              {fishingSafety.reasons.slice(0,2).map((r, i) => (
+                <li key={i}>{r}</li>
+              ))}
+            </ul>
+          ) : null}
         </div>
 
         <div className="bg-white rounded-lg p-4 shadow-sm border">

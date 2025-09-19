@@ -101,8 +101,15 @@ export class GeolocationService {
     this.onLocationUpdate = onLocationUpdate;
     this.onGeofenceViolation = onGeofenceViolation;
 
+    let lastUpdate = 0;
+    const minInterval = 60000; // 1 minute in ms
+
     this.watchId = navigator.geolocation.watchPosition(
       (position) => {
+        const now = Date.now();
+        if (now - lastUpdate < minInterval) return;
+        lastUpdate = now;
+
         const gpsCoord: GPSCoordinate = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,

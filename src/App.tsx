@@ -1,58 +1,52 @@
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useEffect, useState } from 'react'
 import { Home, FileText, AlertTriangle, User } from 'lucide-react'
 import { Routes, Route } from 'react-router-dom';
 import HomePage from './components/HomePage'
 import ReportsPage from './components/ReportsPage'
 import AlertsPage from './components/AlertsPage'
 import ProfilePage from './components/ProfilePage'
-import ZoneDetailPage from './components/ZoneDetailPage'
 import BottomNavigation from './components/BottomNavigation'
 import AlertNotificationBar from './components/AlertNotificationBar'
 import SOSButton from './components/SOSButton'
 import FullMapPage from './components/FullMapPage';
 import CombinedMapPage from './components/CombinedMapPage';
-
-type Page = 'home' | 'reports' | 'alerts' | 'profile' | 'zone-detail'
+import { geolocationService } from './services/geolocationService';
+import type { GPSCoordinate } from './data/dummyData';
 
 function App() {
-  const { t, i18n } = useTranslation()
-  const [currentPage, setCurrentPage] = useState<Page>('home')
-  const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null)
+  const [currentLocation, setCurrentLocation] = useState<GPSCoordinate | null>(null);
+  const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'pending'>('pending');
 
-  const navigateToZone = (zoneId: string) => {
-    setSelectedZoneId(zoneId)
-    setCurrentPage('zone-detail')
-  }
-
-  const navigateBack = () => {
-    setSelectedZoneId(null)
-    setCurrentPage('home')
-  }
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'home':
-        return <HomePage onZoneClick={navigateToZone} />
-      case 'reports':
-        return <ReportsPage />
-      case 'alerts':
-        return <AlertsPage />
-      case 'profile':
-        return <ProfilePage />
-      case 'zone-detail':
-        return selectedZoneId ? <ZoneDetailPage zoneId={selectedZoneId} onBack={navigateBack} /> : <HomePage onZoneClick={navigateToZone} />
-      default:
-        return <HomePage onZoneClick={navigateToZone} />
-    }
-  }
+  useEffect(() => {
+    const initializeLocation = async () => {
+      try {
+        const hasPermission = await geolocationService.requestPermission();
+        if (hasPermission) {
+          setLocationPermission('granted');
+          const position = await geolocationService.getCurrentPosition();
+          setCurrentLocation(position);
+          geolocationService.startWatching((position) => {
+            setCurrentLocation(position);
+          });
+        } else {
+          setLocationPermission('denied');
+        }
+      } catch (error) {
+        setLocationPermission('denied');
+      }
+    };
+    initializeLocation();
+    return () => {
+      geolocationService.stopWatching();
+    };
+  }, []);
 
   const navigationItems = [
-    { id: 'home' as Page, icon: Home, label: t('nav.home') },
-    { id: 'reports' as Page, icon: FileText, label: t('nav.reports') },
-    { id: 'alerts' as Page, icon: AlertTriangle, label: t('nav.alerts') },
-    { id: 'profile' as Page, icon: User, label: t('nav.profile') }
-  ]
+    { id: 'home', icon: Home, label: 'Home', route: '/' },
+    { id: 'reports', icon: FileText, label: 'Reports', route: '/reports' },
+    { id: 'alerts', icon: AlertTriangle, label: 'Alerts', route: '/alerts' },
+    { id: 'profile', icon: User, label: 'Profile', route: '/profile' }
+  ];
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -60,42 +54,24 @@ function App() {
       <AlertNotificationBar />
       {/* Header */}
       <header className="bg-ocean-600 text-white p-4 shadow-lg flex justify-between items-center" style={{backgroundColor: '#0284c7', color: 'white'}}>
-  <h1 className="text-xl font-bold flex-1 text-center">{t('home.title')}</h1>
-        <select
-          aria-label="language"
-          className="ml-2 text-black rounded px-2 py-1"
-          value={i18n.resolvedLanguage}
-          onChange={(e) => i18n.changeLanguage(e.target.value)}
-        >
-          <option value="en">EN</option>
-          <option value="hi">HI</option>
-          <option value="gu">GU</option>
-          <option value="mr">MR</option>
-          <option value="kok">KOK</option>
-          <option value="kn">KN</option>
-          <option value="ml">ML</option>
-          <option value="ta">TA</option>
-          <option value="te">TE</option>
-          <option value="or">OR</option>
-          <option value="bn">BN</option>
-        </select>
+        <h1 className="text-xl font-bold flex-1 text-center">Sagar Setu</h1>
       </header>
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto pb-16">
         <Routes>
-          <Route path="/" element={renderPage()} />
-          <Route path="/map" element={<FullMapPage />} />
-          <Route path="/combined-map" element={<CombinedMapPage />} />
+          <Route path="/" element={<HomePage onZoneClick={() => {}} currentLocation={currentLocation} locationPermission={locationPermission} />} />
+          <Route path="/map" element={<FullMapPage currentLocation={currentLocation} />} />
+          <Route path="/combined-map" element={<CombinedMapPage currentLocation={currentLocation} />} />
+          <Route path="/full-map" element={<FullMapPage currentLocation={currentLocation} />} />
+          <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/alerts" element={<AlertsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </main>
       {/* SOS Button */}
       <SOSButton />
       {/* Bottom Navigation */}
-      <BottomNavigation
-        items={navigationItems}
-        currentPage={currentPage}
-        onPageChange={setCurrentPage}
-      />
+      <BottomNavigation items={navigationItems} />
     </div>
   )
 }

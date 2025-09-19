@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, Circle, Popup, Marker } from 'react-leaflet';
 import 'leaflet.heat';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import L from 'leaflet';
 import boatIconUrl from '../assets/boat.png';
 import { useNavigate } from 'react-router-dom';
@@ -13,11 +13,15 @@ const boatIcon = new L.Icon({
   className: 'boat-marker',
 });
 
-const CombinedMapPage = () => {
+interface CombinedMapPageProps {
+  currentLocation: { latitude: number; longitude: number; accuracy?: number; timestamp?: number } | null;
+}
+
+const CombinedMapPage = ({ currentLocation }: CombinedMapPageProps) => {
   const [clusters, setClusters] = useState<any[]>([]);
   const [todayPoints, setTodayPoints] = useState<any[]>([]);
-  const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number; accuracy?: number; timestamp?: number } | null>(null);
   const navigate = useNavigate();
+  const mapRef = useRef<any>(null);
 
   useEffect(() => {
     fetch('/clusters100.json')
@@ -28,19 +32,6 @@ const CombinedMapPage = () => {
       .then(res => res.json())
       .then(data => setTodayPoints(data))
       .catch(() => setTodayPoints([]));
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setCurrentLocation({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            accuracy: pos.coords.accuracy,
-            timestamp: pos.timestamp,
-          });
-        },
-        () => setCurrentLocation(null)
-      );
-    }
   }, []);
 
   // Fit bounds to user and all points
@@ -50,17 +41,42 @@ const CombinedMapPage = () => {
     ...todayPoints.map(p => [p.latitude, p.longitude]),
   ];
 
+  useEffect(() => {
+    if (mapRef.current && allPoints.length > 1) {
+      mapRef.current.fitBounds(allPoints as any, { padding: [40, 40], maxZoom: 13 });
+    }
+  }, [currentLocation, clusters, todayPoints]);
+
   return (
     <div className="w-screen h-screen">
+      {/* Top Navigation Buttons for seamless map switching */}
+      <div style={{ position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 1000 }}>
+        <div className="flex space-x-2 bg-white rounded-lg shadow p-2">
+          <button
+            className="px-4 py-2 rounded bg-ocean-600 text-white"
+            onClick={() => navigate('/full-map', { state: { mode: 'previous' } })}
+          >
+            Previous Data
+          </button>
+          <button
+            className="px-4 py-2 rounded bg-ocean-600 text-white"
+            onClick={() => navigate('/full-map', { state: { mode: 'today' } })}
+          >
+            Today's Data
+          </button>
+          <button
+            className="px-4 py-2 rounded bg-green-600 text-white"
+            onClick={() => navigate('/combined-map')}
+          >
+            Hybrid
+          </button>
+        </div>
+      </div>
       <MapContainer
+        ref={mapRef}
         center={currentLocation ? [currentLocation.latitude, currentLocation.longitude] : clusters.length > 0 ? [clusters[0].lat, clusters[0].lon] : [18.9, 72.2]}
         zoom={13}
         style={{ height: '100vh', width: '100vw' }}
-        whenReady={({ target: map }) => {
-          if (allPoints.length > 1) {
-            map.fitBounds(allPoints as any, { padding: [40, 40], maxZoom: 13 });
-          }
-        }}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -89,21 +105,8 @@ const CombinedMapPage = () => {
             </Popup>
           </Marker>
         )}
-        {/* Legend */}
-        <div style={{ position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 1000 }}>
-          <div className="flex items-center space-x-4 bg-white rounded-lg shadow p-2">
-            <span className="flex items-center space-x-1">
-              <span style={{ width: 16, height: 16, background: '#2563eb', borderRadius: '50%', opacity: 0.5, display: 'inline-block', border: '2px solid #2563eb' }}></span>
-              <span className="text-sm text-blue-800">Previous Data</span>
-            </span>
-            <span className="flex items-center space-x-1">
-              <span style={{ width: 16, height: 16, background: '#dc2626', borderRadius: '50%', opacity: 0.5, display: 'inline-block', border: '2px solid #dc2626' }}></span>
-              <span className="text-sm text-red-700">Today's Data</span>
-            </span>
-          </div>
-        </div>
         {/* Previous Data: Blue Circles */}
-        {clusters.map((cluster, idx) => (
+        {clusters.map((cluster: any, idx: number) => (
           <Circle
             key={`prev-${idx}`}
             center={[cluster.lat, cluster.lon]}
@@ -130,7 +133,7 @@ const CombinedMapPage = () => {
           </Circle>
         ))}
         {/* Today's Data: Red Circles */}
-        {todayPoints.map((p, idx) => (
+        {todayPoints.map((p: any, idx: number) => (
           <Circle
             key={`today-${idx}`}
             center={[p.latitude, p.longitude]}
@@ -157,6 +160,17 @@ const CombinedMapPage = () => {
           </Circle>
         ))}
       </MapContainer>
+      {/* Color Legend at the bottom */}
+      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-1000 flex items-center space-x-4 bg-white rounded-lg shadow p-2 text-sm">
+        <span className="flex items-center space-x-1">
+          <span style={{ width: 16, height: 16, background: '#2563eb', borderRadius: '50%', opacity: 0.5, display: 'inline-block', border: '2px solid #2563eb' }}></span>
+          <span className="text-blue-800">Previous Data</span>
+        </span>
+        <span className="flex items-center space-x-1">
+          <span style={{ width: 16, height: 16, background: '#dc2626', borderRadius: '50%', opacity: 0.5, display: 'inline-block', border: '2px solid #dc2626' }}></span>
+          <span className="text-red-700">Today's Data</span>
+        </span>
+      </div>
     </div>
   );
 };

@@ -3,7 +3,7 @@ import 'leaflet.heat';
 import { useEffect, useState } from 'react';
 import L from 'leaflet';
 import boatIconUrl from '../assets/boat.png';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const HeatmapLayer = ({ points }: { points: [number, number, number][] }) => {
   const map = useMap();
@@ -62,28 +62,17 @@ const boatIcon = new L.Icon({
   className: 'boat-marker',
 });
 
-const FullMapPage = () => {
-  const [mode, setMode] = useState<'previous' | 'today'>('previous');
+interface FullMapPageProps {
+  currentLocation: { latitude: number; longitude: number; accuracy?: number; timestamp?: number } | null;
+}
+
+const FullMapPage = ({ currentLocation }: FullMapPageProps) => {
+  const location = useLocation();
+  const initialMode = location.state?.mode === 'today' ? 'today' : 'previous';
+  const [mode, setMode] = useState<'previous' | 'today'>(initialMode);
   const [clusters, setClusters] = useState<any[]>([]);
   const [todayPoints, setTodayPoints] = useState<any[]>([]);
-  const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number; accuracy?: number; timestamp?: number } | null>(null);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setCurrentLocation({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            accuracy: pos.coords.accuracy,
-            timestamp: pos.timestamp,
-          });
-        },
-        () => setCurrentLocation(null)
-      );
-    }
-  }, []);
 
   useEffect(() => {
     if (mode === 'previous') {
@@ -129,7 +118,7 @@ const FullMapPage = () => {
         </div>
       </div>
       <MapContainer
-        center={[36, -120]}
+        center={currentLocation ? [currentLocation.latitude, currentLocation.longitude] : [18.9000, 72.2000]}
         zoom={7}
         style={{ height: '100vh', width: '100vw' }}
       >
@@ -137,7 +126,7 @@ const FullMapPage = () => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        {/* User's Location Marker */}
+        {/* User's Location Marker - always shown if available */}
         {currentLocation && (
           <Marker 
             position={[currentLocation.latitude, currentLocation.longitude]}

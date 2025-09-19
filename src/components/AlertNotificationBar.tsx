@@ -2,28 +2,26 @@ import { useState, useEffect } from 'react'
 import { X, AlertTriangle, Info } from 'lucide-react'
 import { alerts } from '../data/dummyData'
 import type { Alert } from '../data/dummyData'
+import { useNavigate } from 'react-router-dom';
 
 const AlertNotificationBar = () => {
   const [isVisible, setIsVisible] = useState(false)
   const [currentAlert, setCurrentAlert] = useState<Alert | null>(null)
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Find the most recent government/high priority alert
-    const govAlert = alerts.find(alert => 
-      alert.isActive && 
-      (alert.title.toLowerCase().includes('government') || alert.severity === 'high')
-    )
-    
-    if (govAlert) {
-      setCurrentAlert(govAlert)
-      setIsVisible(true)
-      
-      // Auto-hide after 10 seconds
+    // Show the latest active alert (by timestamp)
+    const latestAlert = alerts
+      .filter(alert => alert.isActive)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+
+    if (latestAlert) {
+      setCurrentAlert(latestAlert);
+      setIsVisible(true);
       const timer = setTimeout(() => {
-        setIsVisible(false)
-      }, 10000)
-      
-      return () => clearTimeout(timer)
+        setIsVisible(false);
+      }, 10000);
+      return () => clearTimeout(timer);
     }
   }, [])
 
@@ -50,6 +48,8 @@ const AlertNotificationBar = () => {
       className={`fixed top-0 left-0 right-0 z-50 transform transition-transform duration-500 ease-in-out ${
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
+      onClick={() => navigate('/alerts')}
+      style={{ cursor: 'pointer' }}
     >
       <div className={`${getAlertStyles(currentAlert.severity)} px-4 py-3 shadow-lg`}>
         <div className="flex items-center justify-between max-w-4xl mx-auto">

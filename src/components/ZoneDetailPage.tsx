@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Navigation, MapPin, Compass, Clock, Fish } from 'lucide-react'
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
 import L from 'leaflet'
@@ -10,6 +11,7 @@ interface ZoneDetailPageProps {
 }
 
 const ZoneDetailPage = ({ zoneId, onBack }: ZoneDetailPageProps) => {
+  const { t } = useTranslation()
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
   const [isNavigating, setIsNavigating] = useState(false)
   const [eta, setEta] = useState<number | null>(null)
@@ -61,9 +63,9 @@ const ZoneDetailPage = ({ zoneId, onBack }: ZoneDetailPageProps) => {
       <div className="p-4">
         <button onClick={onBack} className="flex items-center space-x-2 text-ocean-600 mb-4">
           <ArrowLeft size={20} />
-          <span>Back</span>
+          <span>{t('zone.back')}</span>
         </button>
-        <p>Zone not found</p>
+        <p>{t('zone.notFound')}</p>
       </div>
     )
   }
@@ -78,7 +80,7 @@ const ZoneDetailPage = ({ zoneId, onBack }: ZoneDetailPageProps) => {
             className="flex items-center space-x-2 text-ocean-600 hover:text-ocean-700"
           >
             <ArrowLeft size={20} />
-            <span>Back</span>
+            <span>{t('zone.back')}</span>
           </button>
           <h1 className="text-lg font-bold text-gray-800">{zone.name}</h1>
           <div className="w-12"></div> {/* Spacer for centering */}
@@ -90,7 +92,7 @@ const ZoneDetailPage = ({ zoneId, onBack }: ZoneDetailPageProps) => {
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-white rounded-lg p-3 text-center">
             <Fish className="mx-auto text-ocean-600 mb-1" size={20} />
-            <p className="text-xs text-gray-600">Probability</p>
+            <p className="text-xs text-gray-600">{t('zone.probability')}</p>
             <p className={`font-bold ${
               zone.probability === 'high' ? 'text-blue-600' :
               zone.probability === 'medium' ? 'text-amber-600' :
@@ -102,7 +104,7 @@ const ZoneDetailPage = ({ zoneId, onBack }: ZoneDetailPageProps) => {
           
           <div className="bg-white rounded-lg p-3 text-center">
             <Compass className="mx-auto text-gray-600 mb-1" size={20} />
-            <p className="text-xs text-gray-600">Distance</p>
+            <p className="text-xs text-gray-600">{t('zone.distance')}</p>
             <p className="font-bold text-gray-800">
               {userLocation ? calculateDistance(userLocation, zone.coordinates).toFixed(1) : '...'} nm
             </p>
@@ -110,7 +112,7 @@ const ZoneDetailPage = ({ zoneId, onBack }: ZoneDetailPageProps) => {
           
           <div className="bg-white rounded-lg p-3 text-center">
             <Clock className="mx-auto text-green-600 mb-1" size={20} />
-            <p className="text-xs text-gray-600">ETA</p>
+            <p className="text-xs text-gray-600">{t('zone.eta')}</p>
             <p className="font-bold text-green-600">
               {eta ? `${Math.round(eta)} min` : '...'}
             </p>
@@ -118,14 +120,14 @@ const ZoneDetailPage = ({ zoneId, onBack }: ZoneDetailPageProps) => {
           
           <div className="bg-white rounded-lg p-3 text-center">
             <MapPin className="mx-auto text-blue-600 mb-1" size={20} />
-            <p className="text-xs text-gray-600">Depth</p>
+            <p className="text-xs text-gray-600">{t('zone.depth')}</p>
             <p className="font-bold text-blue-600">{zone.depth}m</p>
           </div>
         </div>
 
         {/* Fish Types */}
         <div className="bg-white rounded-lg p-3 mb-4">
-          <h3 className="font-semibold text-gray-800 mb-2">Expected Fish</h3>
+          <h3 className="font-semibold text-gray-800 mb-2">{t('zone.expectedFish')}</h3>
           <div className="flex flex-wrap gap-2">
             {zone.fishType.map((fish, index) => (
               <span 
@@ -157,7 +159,7 @@ const ZoneDetailPage = ({ zoneId, onBack }: ZoneDetailPageProps) => {
               <Popup>
                 <div className="text-center">
                   <h3 className="font-bold">{zone.name}</h3>
-                  <p>Target Fishing Zone</p>
+                  <p>{t('zone.targetZone')}</p>
                   <p className="text-sm text-gray-600">
                     {zone.coordinates[0].toFixed(4)}°N, {zone.coordinates[1].toFixed(4)}°E
                   </p>
@@ -177,8 +179,8 @@ const ZoneDetailPage = ({ zoneId, onBack }: ZoneDetailPageProps) => {
               >
                 <Popup>
                   <div className="text-center">
-                    <h3 className="font-bold text-green-600">Your Location</h3>
-                    <p className="text-sm">Current Position</p>
+                    <h3 className="font-bold text-green-600">{t('zone.yourLocation')}</h3>
+                    <p className="text-sm">{t('zone.currentPosition')}</p>
                   </div>
                 </Popup>
               </Marker>
@@ -202,9 +204,9 @@ const ZoneDetailPage = ({ zoneId, onBack }: ZoneDetailPageProps) => {
             <div className="flex items-center space-x-2">
               <Navigation size={20} className="animate-pulse" />
               <div className="flex-1">
-                <p className="font-semibold">Navigating to {zone.name}</p>
+                <p className="font-semibold">{t('zone.navigatingTo')} {zone.name}</p>
                 <p className="text-sm text-blue-100">
-                  {eta ? `${Math.round(eta)} minutes remaining` : 'Calculating route...'}
+                  {eta ? `${Math.round(eta)} ${t('zone.minutesRemaining')}` : 'Calculating route...'}
                 </p>
               </div>
             </div>
@@ -227,13 +229,13 @@ const ZoneDetailPage = ({ zoneId, onBack }: ZoneDetailPageProps) => {
         >
           <Navigation size={20} />
           <span>
-            {isNavigating ? 'Navigation Active' : userLocation ? 'Start Navigation' : 'Getting GPS...'}
+            {isNavigating ? t('zone.navigationActive') : userLocation ? t('zone.startNavigation') : t('zone.gettingGPS')}
           </span>
         </button>
         
         {userLocation && (
           <p className="text-center text-sm text-gray-600 mt-2">
-            Current location: {userLocation[0].toFixed(4)}°N, {userLocation[1].toFixed(4)}°E
+            {t('zone.currentLocationLabel')}: {userLocation[0].toFixed(4)}°N, {userLocation[1].toFixed(4)}°E
           </p>
         )}
       </div>

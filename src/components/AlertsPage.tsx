@@ -1,4 +1,4 @@
-import { AlertTriangle, Cloud, Navigation, Calendar, CheckCircle, Clock } from 'lucide-react'
+import { AlertTriangle, Cloud, Navigation, Calendar, CheckCircle, Clock, ShieldAlert } from 'lucide-react'
 import { alerts, geofenceAlerts } from '../data/dummyData'
 import GeofenceAlertsComponent from './GeofenceAlertsComponent'
 import { useState, useEffect } from 'react'
@@ -62,6 +62,7 @@ const AlertsPage = () => {
       case 'weather': return Cloud
       case 'boundary': return Navigation
       case 'seasonal': return Calendar
+      case 'government': return ShieldAlert
       default: return AlertTriangle
     }
   }
@@ -89,8 +90,8 @@ const AlertsPage = () => {
     <div className="p-4 space-y-4">
       {/* Header */}
       <div className="bg-white rounded-lg p-4 shadow-sm border">
-        <h1 className="text-xl font-bold text-gray-800 mb-2">Alerts & Notifications</h1>
-        <p className="text-gray-600">Stay informed about weather, boundaries, and regulations</p>
+        <h1 className="text-xl font-bold text-gray-800 mb-2">Alerts</h1>
+        <p className="text-gray-600">Important alerts for your safety and compliance.</p>
       </div>
 
       {/* Geofencing Alerts */}
@@ -119,13 +120,16 @@ const AlertsPage = () => {
               return (
                 <div
                   key={alert.id}
-                  className={`p-4 rounded-lg border-l-4 ${getSeverityColor(alert.severity)}`}
+                  className={`p-4 rounded-lg border-l-4 ${getSeverityColor(alert.severity)} ${alert.type === 'government' ? 'bg-red-100 border-red-500' : ''}`}
                 >
                   <div className="flex items-start space-x-3">
-                    <Icon size={20} className="mt-0.5 flex-shrink-0" />
+                    <Icon size={20} className={`mt-0.5 flex-shrink-0 ${alert.type === 'government' ? 'text-red-600' : ''}`} />
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-semibold text-gray-800">{alert.title}</h3>
+                        <h3 className="font-semibold text-gray-800">
+                          {alert.type === 'government' && <span className="text-red-600 font-bold mr-2">[Govt]</span>}
+                          {alert.title}
+                        </h3>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(alert.severity)}`}>
                           {alert.severity}
                         </span>
@@ -146,7 +150,7 @@ const AlertsPage = () => {
           <div className="text-center py-8">
             <CheckCircle className="mx-auto text-green-500 mb-2" size={48} />
             <p className="text-gray-600">No active alerts</p>
-            <p className="text-sm text-gray-500">All systems are operating normally</p>
+            <p className="text-sm text-gray-500">Stay safe and follow all guidelines.</p>
           </div>
         )}
       </div>
@@ -164,13 +168,16 @@ const AlertsPage = () => {
             return (
               <div
                 key={alert.id}
-                className="p-3 bg-gray-50 rounded-lg border border-gray-200"
+                className={`p-3 rounded-lg border border-gray-200 ${alert.type === 'government' ? 'bg-red-50 border-red-300' : 'bg-gray-50'}`}
               >
                 <div className="flex items-start space-x-3">
-                  <Icon size={18} className="mt-0.5 text-gray-500 flex-shrink-0" />
+                  <Icon size={18} className={`mt-0.5 flex-shrink-0 ${alert.type === 'government' ? 'text-red-600' : 'text-gray-500'}`} />
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-medium text-gray-700">{alert.title}</h3>
+                      <h3 className="font-medium text-gray-700">
+                        {alert.type === 'government' && <span className="text-red-600 font-bold mr-2">[Govt]</span>}
+                        {alert.title}
+                      </h3>
                       <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
                         Resolved
                       </span>
@@ -196,30 +203,29 @@ const AlertsPage = () => {
           <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
             <Cloud className="text-blue-600 mt-0.5" size={18} />
             <div>
-              <p className="text-sm font-medium text-blue-800">Weather Alerts</p>
-              <p className="text-sm text-blue-700">
-                Notifications about weather conditions, storms, and sea state changes.
-              </p>
+              <p className="text-sm font-medium text-blue-800">Weather</p>
+              <p className="text-sm text-blue-700">Weather-related alerts for safe fishing.</p>
             </div>
           </div>
-          
           <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
             <Navigation className="text-green-600 mt-0.5" size={18} />
             <div>
-              <p className="text-sm font-medium text-green-800">Boundary Alerts</p>
-              <p className="text-sm text-green-700">
-                Warnings when approaching territorial or restricted fishing zones.
-              </p>
+              <p className="text-sm font-medium text-green-800">Boundary</p>
+              <p className="text-sm text-green-700">Boundary and zone compliance alerts.</p>
             </div>
           </div>
-
           <div className="flex items-start space-x-3 p-3 bg-amber-50 rounded-lg">
             <Calendar className="text-amber-600 mt-0.5" size={18} />
             <div>
-              <p className="text-sm font-medium text-amber-800">Seasonal Alerts</p>
-              <p className="text-sm text-amber-700">
-                Information about fishing bans, seasons, and regulatory changes.
-              </p>
+              <p className="text-sm font-medium text-amber-800">Seasonal</p>
+              <p className="text-sm text-amber-700">Seasonal bans and regulation alerts.</p>
+            </div>
+          </div>
+          <div className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg">
+            <ShieldAlert className="text-red-600 mt-0.5" size={18} />
+            <div>
+              <p className="text-sm font-medium text-red-800">Government</p>
+              <p className="text-sm text-red-700">Official government alerts from the Natural Disaster Management Authority.</p>
             </div>
           </div>
         </div>

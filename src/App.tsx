@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Home, FileText, AlertTriangle, User } from 'lucide-react'
 import { Routes, Route } from 'react-router-dom';
 import HomePage from './components/HomePage'
@@ -14,6 +15,7 @@ import FullMapPage from './components/FullMapPage';
 type Page = 'home' | 'reports' | 'alerts' | 'profile' | 'zone-detail'
 
 function App() {
+  const { t, i18n } = useTranslation()
   const [currentPage, setCurrentPage] = useState<Page>('home')
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null)
 
@@ -45,10 +47,10 @@ function App() {
   }
 
   const navigationItems = [
-    { id: 'home' as Page, icon: Home, label: 'Home' },
-    { id: 'reports' as Page, icon: FileText, label: 'Reports' },
-    { id: 'alerts' as Page, icon: AlertTriangle, label: 'Alerts' },
-    { id: 'profile' as Page, icon: User, label: 'Profile' }
+    { id: 'home' as Page, icon: Home, label: t('nav.home') },
+    { id: 'reports' as Page, icon: FileText, label: t('nav.reports') },
+    { id: 'alerts' as Page, icon: AlertTriangle, label: t('nav.alerts') },
+    { id: 'profile' as Page, icon: User, label: t('nav.profile') }
   ]
 
   return (
@@ -57,7 +59,25 @@ function App() {
       <AlertNotificationBar />
       {/* Header */}
       <header className="bg-ocean-600 text-white p-4 shadow-lg flex justify-between items-center" style={{backgroundColor: '#0284c7', color: 'white'}}>
-        <h1 className="text-xl font-bold flex-1 text-center">Fish Zone Predictor</h1>
+  <h1 className="text-xl font-bold flex-1 text-center">{t('home.title')}</h1>
+        <select
+          aria-label="language"
+          className="ml-2 text-black rounded px-2 py-1"
+          value={i18n.resolvedLanguage}
+          onChange={(e) => i18n.changeLanguage(e.target.value)}
+        >
+          <option value="en">EN</option>
+          <option value="hi">HI</option>
+          <option value="gu">GU</option>
+          <option value="mr">MR</option>
+          <option value="kok">KOK</option>
+          <option value="kn">KN</option>
+          <option value="ml">ML</option>
+          <option value="ta">TA</option>
+          <option value="te">TE</option>
+          <option value="or">OR</option>
+          <option value="bn">BN</option>
+        </select>
       </header>
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto pb-16">

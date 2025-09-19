@@ -1,5 +1,6 @@
 import { Calendar, TrendingUp, Fuel, Target } from 'lucide-react'
 import { tripSummary } from '../data/dummyData'
+import { useTranslation } from 'react-i18next'
 
 const ReportsPage = () => {
   const totalTrips = tripSummary.reduce((sum, month) => sum + month.trips, 0)
@@ -12,12 +13,13 @@ const ReportsPage = () => {
   const currentDate = new Date()
   const currentMonth = currentDate.toLocaleString('default', { month: 'long' })
 
+  const { t } = useTranslation()
   return (
     <div className="p-4 space-y-4">
       {/* Header */}
       <div className="bg-white rounded-lg p-4 shadow-sm border">
-        <h1 className="text-xl font-bold text-gray-800 mb-2">Monthly Reports</h1>
-        <p className="text-gray-600">Track your fishing trip performance and statistics</p>
+        <h1 className="text-xl font-bold text-gray-800 mb-2">{t('reports.header')}</h1>
+        <p className="text-gray-600">{t('reports.subheader')}</p>
       </div>
 
       {/* Summary Cards */}
@@ -26,7 +28,7 @@ const ReportsPage = () => {
           <div className="flex items-center space-x-2">
             <Calendar className="text-ocean-600" size={20} />
             <div>
-              <p className="text-sm text-gray-600">Total Trips</p>
+              <p className="text-sm text-gray-600">{t('reports.totalTrips')}</p>
               <p className="text-xl font-bold text-ocean-700">{totalTrips}</p>
             </div>
           </div>
@@ -36,7 +38,7 @@ const ReportsPage = () => {
           <div className="flex items-center space-x-2">
             <TrendingUp className="text-green-600" size={20} />
             <div>
-              <p className="text-sm text-gray-600">Total Distance</p>
+              <p className="text-sm text-gray-600">{t('reports.totalDistance')}</p>
               <p className="text-lg font-bold text-green-700">{totalDistance.toFixed(1)} km</p>
             </div>
           </div>
@@ -46,7 +48,7 @@ const ReportsPage = () => {
           <div className="flex items-center space-x-2">
             <Target className="text-blue-600" size={20} />
             <div>
-              <p className="text-sm text-gray-600">Avg Catch Rate</p>
+              <p className="text-sm text-gray-600">{t('reports.avgCatchRate')}</p>
               <p className="text-xl font-bold text-blue-700">{avgCatchProbability}%</p>
             </div>
           </div>
@@ -56,7 +58,7 @@ const ReportsPage = () => {
           <div className="flex items-center space-x-2">
             <Fuel className="text-orange-600" size={20} />
             <div>
-              <p className="text-sm text-gray-600">Total Fuel</p>
+              <p className="text-sm text-gray-600">{t('reports.totalFuel')}</p>
               <p className="text-lg font-bold text-orange-700">{totalFuel.toFixed(1)} L</p>
             </div>
           </div>
@@ -65,16 +67,16 @@ const ReportsPage = () => {
 
       {/* Monthly Summary Table */}
       <div className="bg-white rounded-lg p-4 shadow-sm border">
-        <h2 className="text-lg font-semibold mb-4 text-gray-800">Monthly Summary</h2>
+        <h2 className="text-lg font-semibold mb-4 text-gray-800">{t('reports.monthlySummary')}</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-2 px-1 font-medium text-gray-700">Month</th>
-                <th className="text-center py-2 px-1 font-medium text-gray-700">Trips</th>
-                <th className="text-center py-2 px-1 font-medium text-gray-700">Distance</th>
-                <th className="text-center py-2 px-1 font-medium text-gray-700">Catch %</th>
-                <th className="text-center py-2 px-1 font-medium text-gray-700">Fuel (L)</th>
+                <th className="text-left py-2 px-1 font-medium text-gray-700">{t('reports.month')}</th>
+                <th className="text-center py-2 px-1 font-medium text-gray-700">{t('reports.trips')}</th>
+                <th className="text-center py-2 px-1 font-medium text-gray-700">{t('reports.distance')}</th>
+                <th className="text-center py-2 px-1 font-medium text-gray-700">{t('reports.catchPct')}</th>
+                <th className="text-center py-2 px-1 font-medium text-gray-700">{t('reports.fuel')}</th>
               </tr>
             </thead>
             <tbody>
@@ -89,7 +91,7 @@ const ReportsPage = () => {
                     {month.month}
                     {month.month === currentMonth && (
                       <span className="ml-2 text-xs bg-ocean-600 text-white px-2 py-1 rounded-full">
-                        Current
+                        {t('reports.current')}
                       </span>
                     )}
                   </td>
@@ -116,12 +118,12 @@ const ReportsPage = () => {
 
       {/* Performance Insights */}
       <div className="bg-white rounded-lg p-4 shadow-sm border">
-        <h2 className="text-lg font-semibold mb-3 text-gray-800">Performance Insights</h2>
+        <h2 className="text-lg font-semibold mb-3 text-gray-800">{t('reports.insights')}</h2>
         <div className="space-y-3">
           <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
             <TrendingUp className="text-green-600 mt-0.5" size={18} />
             <div>
-              <p className="text-sm font-medium text-green-800">Best Performance</p>
+              <p className="text-sm font-medium text-green-800">{t('reports.bestPerformance')}</p>
               <p className="text-sm text-green-700">
                 October had the highest catch probability at 91% with 20 successful trips.
               </p>
@@ -131,7 +133,7 @@ const ReportsPage = () => {
           <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
             <Calendar className="text-blue-600 mt-0.5" size={18} />
             <div>
-              <p className="text-sm font-medium text-blue-800">Seasonal Pattern</p>
+              <p className="text-sm font-medium text-blue-800">{t('reports.seasonalPattern')}</p>
               <p className="text-sm text-blue-700">
                 Post-monsoon season (Sep-Dec) shows consistently higher catch rates.
               </p>
@@ -141,7 +143,7 @@ const ReportsPage = () => {
           <div className="flex items-start space-x-3 p-3 bg-amber-50 rounded-lg">
             <Fuel className="text-amber-600 mt-0.5" size={18} />
             <div>
-              <p className="text-sm font-medium text-amber-800">Fuel Efficiency</p>
+              <p className="text-sm font-medium text-amber-800">{t('reports.fuelEfficiency')}</p>
               <p className="text-sm text-amber-700">
                 Average fuel consumption: {(totalFuel / totalTrips).toFixed(1)} L per trip.
               </p>

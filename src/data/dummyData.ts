@@ -12,7 +12,7 @@ export interface FishingZone {
 
 export interface Alert {
   id: string;
-  type: 'weather' | 'boundary' | 'seasonal';
+  type: 'weather' | 'boundary' | 'seasonal' | 'government'; // Added 'government'
   severity: 'high' | 'medium' | 'low';
   title: string;
   description: string;
@@ -160,6 +160,15 @@ export const alerts: Alert[] = [
     description: 'Cyclonic disturbance detected 200km southwest. Avoid deep sea fishing.',
     timestamp: '2025-09-04T18:00:00Z',
     isActive: false
+  },
+  {
+    id: 'alert-006',
+    type: 'government',
+    severity: 'high',
+    title: 'NDMA Cyclone Alert',
+    description: 'Severe cyclone expected in the Bay of Bengal. All fishing activities are suspended until further notice by the Natural Disaster Management Authority.',
+    timestamp: '2025-09-19T09:00:00Z',
+    isActive: true
   }
 ];
 

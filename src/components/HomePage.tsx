@@ -8,6 +8,7 @@ import { fishingZones, quickStats } from '../data/dummyData'
 import { geolocationService } from '../services/geolocationService'
 import type { GPSCoordinate } from '../data/dummyData'
 import { weatherService } from '../services/weatherService'
+import { useTranslation } from 'react-i18next'
 import boatIconUrl from '../assets/boat.png';
 
 interface HomePageProps {
@@ -21,6 +22,24 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 })
+
+// Optimize canvas context for heatmap readbacks (willReadFrequently)
+if (!(L as any)._wrfPatched) {
+  const CanvasProto = (L as any).Canvas && (L as any).Canvas.prototype
+  if (CanvasProto && typeof CanvasProto._initContainer === 'function') {
+    const originalInit = CanvasProto._initContainer
+    CanvasProto._initContainer = function () {
+      // Create container manually to inject willReadFrequently option
+      this._container = document.createElement('canvas')
+      ;(L as any).DomEvent.on(this._container, 'mouseout', this._handleMouseOut, this)
+      this._ctx = this._container.getContext('2d', { willReadFrequently: true })
+      this._container._leaflet = true
+      ;(L as any).DomEvent.disableClickPropagation(this._container)
+      ;(L as any).DomEvent.disableScrollPropagation(this._container)
+    }
+    ;(L as any)._wrfPatched = true
+  }
+}
 
 const HeatmapLayer = ({ points }: { points: [number, number, number][] }) => {
   const map = useMap();
@@ -97,6 +116,7 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
   const [clusters, setClusters] = useState<any[]>([])
   const [fishingSafety, setFishingSafety] = useState<FishingSafetyResult | null>(null)
   const [isFetchingWeather, setIsFetchingWeather] = useState<boolean>(false)
+  const { t } = useTranslation()
 
   useEffect(() => {
     const initializeLocation = async () => {
@@ -203,7 +223,7 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
           <div className="flex items-center space-x-2">
             <MapPin className="text-ocean-600" size={20} />
             <div>
-              <p className="text-sm text-gray-600">PFZ Zones Today</p>
+               <p className="text-sm text-gray-600">{t('home.pfzZonesToday')}</p>
               <p className="text-xl font-bold text-ocean-700">{quickStats.todayZones}</p>
             </div>
           </div>
@@ -216,7 +236,7 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
                 fishingSafety?.status === 'Safe' ? 'text-green-600' : fishingSafety?.status === 'Unsafe' ? 'text-red-600' : 'text-amber-600'
               } size={20} />
               <div>
-                <p className="text-sm text-gray-600">Weather Status</p>
+                 <p className="text-sm text-gray-600">{t('home.weatherStatus')}</p>
                 <p className={
                   `text-sm font-semibold ${
                     fishingSafety?.status === 'Safe' ? 'text-green-700' : fishingSafety?.status === 'Unsafe' ? 'text-red-700' : 'text-amber-700'
@@ -253,7 +273,7 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
           <div className="flex items-center space-x-2">
             <Thermometer className="text-blue-600" size={20} />
             <div>
-              <p className="text-sm text-gray-600">Boundary</p>
+               <p className="text-sm text-gray-600">{t('home.boundary')}</p>
               <p className="text-sm font-semibold text-blue-700">{quickStats.boundaryStatus}</p>
             </div>
           </div>
@@ -263,7 +283,7 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
           <div className="flex items-center space-x-2">
             <Fish className="text-orange-600" size={20} />
             <div>
-              <p className="text-sm text-gray-600">Active Alerts</p>
+               <p className="text-sm text-gray-600">{t('home.activeAlerts')}</p>
               <p className="text-xl font-bold text-orange-700">{quickStats.activeAlerts}</p>
             </div>
           </div>
@@ -342,12 +362,13 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
 
       {/* Map Section */}
       <div className="bg-white rounded-lg p-4 shadow-sm border">
-        <h2 className="text-lg font-semibold mb-3 text-gray-800">Fishing Zone Map</h2>
+         <h2 className="text-lg font-semibold mb-3 text-gray-800">{t('home.fishingZoneMap')}</h2>
         <div className="h-64 rounded-lg overflow-hidden border">
           <MapContainer
             center={currentLocation ? [currentLocation.latitude, currentLocation.longitude] : clusters.length > 0 ? [clusters[0].lat, clusters[0].lon] : [18.9000, 72.2000]}
             zoom={13}
             style={{ height: '100%', width: '100%' }}
+            preferCanvas
           >
             <FitMapToUserAndClusters userLocation={currentLocation} clusters={clusters} />
             <MapClickRedirect userLocation={currentLocation} clusters={clusters} />
@@ -434,24 +455,24 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
 
         {/* Legend */}
         <div className="mt-3 flex items-center justify-center space-x-4 text-sm">
-          <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            <span>High Probability</span>
-          </div>
+            <div className="flex items-center space-x-1">
+              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+              <span>{t('home.legend.high')}</span>
+            </div>
           <div className="flex items-center space-x-1">
             <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-            <span>Medium</span>
+              <span>{t('home.legend.medium')}</span>
           </div>
           <div className="flex items-center space-x-1">
             <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <span>Low</span>
+              <span>{t('home.legend.low')}</span>
           </div>
         </div>
       </div>
 
       {/* Zone Details */}
       <div className="bg-white rounded-lg p-4 shadow-sm border">
-        <h2 className="text-lg font-semibold mb-3 text-gray-800">Today's PFZ Zones</h2>
+         <h2 className="text-lg font-semibold mb-3 text-gray-800">{t('home.todaysPFZZones')}</h2>
         <div className="space-y-3">
           {fishingZones.slice(0, 4).map((zone) => (
             <button
@@ -462,7 +483,7 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
               <div className="text-left">
                 <h3 className="font-medium text-gray-800">{zone.name}</h3>
                 <p className="text-sm text-gray-600">{zone.fishType.join(', ')}</p>
-                <p className="text-xs text-ocean-600 mt-1">📍 Tap to navigate</p>
+                <p className="text-xs text-ocean-600 mt-1">📍 {t('home.tapToNavigate')}</p>
               </div>
               <div className="text-right">
                 <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
@@ -473,7 +494,7 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
                   {zone.probability}
                 </span>
                 <p className="text-sm text-gray-600 mt-1">{zone.temperature}°C</p>
-                <p className="text-xs text-gray-500">{zone.depth}m deep</p>
+                <p className="text-xs text-gray-500">{zone.depth}{t('home.metersDeep')}</p>
               </div>
             </button>
           ))}

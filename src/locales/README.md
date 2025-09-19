@@ -1,4 +1,4 @@
-# Internationalization (i18n) in Fish Zone Predictor App
+# Internationalization (i18n) in Sagar Setu App
 
 This project uses `react-i18next` for internationalization (i18n) to support multiple languages.
 

@@ -28,8 +28,23 @@ export class GeolocationService {
   // Initialize GPS tracking
   async requestPermission(): Promise<boolean> {
     if (!navigator.geolocation) {
-      console.error('Geolocation is not supported by this browser');
+      console.warn('Geolocation is not supported by this browser');
       return false;
+    }
+
+    // Check Permission Status first to avoid repeated prompts
+    try {
+      // Permissions API is not supported in all browsers
+      const anyNavigator: any = navigator as any;
+      if (anyNavigator.permissions && anyNavigator.permissions.query) {
+        const status = await anyNavigator.permissions.query({ name: 'geolocation' as PermissionName });
+        if (status.state === 'denied') {
+          // Do not attempt to prompt again; surface as denied gracefully
+          return false;
+        }
+      }
+    } catch {
+      // Ignore permissions API errors; fallback to prompt flow
     }
 
     try {
@@ -37,7 +52,7 @@ export class GeolocationService {
       await this.getCurrentPosition();
       return true;
     } catch (error) {
-      console.error('Geolocation permission denied:', error);
+      console.warn('Geolocation permission denied:', error);
       return false;
     }
   }

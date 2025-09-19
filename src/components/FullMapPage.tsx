@@ -3,6 +3,7 @@ import 'leaflet.heat';
 import { useEffect, useState } from 'react';
 import L from 'leaflet';
 import boatIconUrl from '../assets/boat.png';
+import { useNavigate } from 'react-router-dom';
 
 const HeatmapLayer = ({ points }: { points: [number, number, number][] }) => {
   const map = useMap();
@@ -66,6 +67,7 @@ const FullMapPage = () => {
   const [clusters, setClusters] = useState<any[]>([]);
   const [todayPoints, setTodayPoints] = useState<any[]>([]);
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number; accuracy?: number; timestamp?: number } | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -117,6 +119,12 @@ const FullMapPage = () => {
             onClick={() => setMode('today')}
           >
             {"Today's Data"}
+          </button>
+          <button
+            className="px-4 py-2 rounded bg-green-600 text-white"
+            onClick={() => navigate('/combined-map')}
+          >
+            {'Hybrid'}
           </button>
         </div>
       </div>

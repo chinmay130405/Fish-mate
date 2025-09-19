@@ -10,6 +10,7 @@ import BottomNavigation from './components/BottomNavigation'
 import AlertNotificationBar from './components/AlertNotificationBar'
 import SOSButton from './components/SOSButton'
 import FullMapPage from './components/FullMapPage';
+import CombinedMapPage from './components/CombinedMapPage';
 
 type Page = 'home' | 'reports' | 'alerts' | 'profile' | 'zone-detail'
 
@@ -64,6 +65,7 @@ function App() {
         <Routes>
           <Route path="/" element={renderPage()} />
           <Route path="/map" element={<FullMapPage />} />
+          <Route path="/combined-map" element={<CombinedMapPage />} />
         </Routes>
       </main>
       {/* SOS Button */}

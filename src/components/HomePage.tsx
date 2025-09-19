@@ -4,15 +4,14 @@ import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import L from 'leaflet'
 import 'leaflet.heat';
-import { fishingZones, quickStats } from '../data/dummyData'
+import { quickStats } from '../data/dummyData'
 import type { GPSCoordinate } from '../data/dummyData'
 import { weatherService } from '../services/weatherService'
 import boatIconUrl from '../assets/boat.png';
 
 interface HomePageProps {
-  onZoneClick: (zoneId: string) => void
-  currentLocation: GPSCoordinate | null
-  locationPermission: 'granted' | 'denied' | 'pending'
+  currentLocation?: GPSCoordinate | null
+  locationPermission?: 'granted' | 'denied' | 'pending'
 }
 
 // Fix for default markers in react-leaflet
@@ -95,10 +94,32 @@ const MapClickRedirect = ({ userLocation, clusters }: { userLocation: GPSCoordin
   return null;
 };
 
-const HomePage = ({ onZoneClick, currentLocation, locationPermission }: HomePageProps) => {
+const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
   const [clusters, setClusters] = useState<any[]>([])
   const [fishingSafety, setFishingSafety] = useState<any>(null)
   const [isFetchingWeather, setIsFetchingWeather] = useState<boolean>(false)
+
+  // Enhanced color functions for weather conditions
+  const getWindColor = (windSpeed?: number) => {
+    if (!windSpeed) return 'text-gray-500'
+    if (windSpeed <= 6) return 'text-green-600'
+    if (windSpeed <= 10) return 'text-yellow-500'
+    return 'text-red-500'
+  }
+
+  const getWaveColor = (waveHeight?: number) => {
+    if (!waveHeight) return 'text-gray-500'  
+    if (waveHeight <= 1.0) return 'text-blue-600'
+    if (waveHeight <= 1.8) return 'text-yellow-500'
+    return 'text-red-500'
+  }
+
+  const getWeatherIcon = () => {
+    const status = fishingSafety?.status
+    if (status === 'Safe') return '✅'
+    if (status === 'Unsafe') return '⚠️'
+    return '⚡'
+  }
 
   useEffect(() => {
     // Load cluster data from the same source as FullMapPage
@@ -166,43 +187,72 @@ const HomePage = ({ onZoneClick, currentLocation, locationPermission }: HomePage
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 shadow-sm border">
-          <div className="flex items-center justify-between">
+        <div className="bg-white rounded-lg p-4 shadow-sm border relative min-h-[120px]">
+          {/* Weather Status - Left Side Center */}
+          <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
             <div className="flex items-center space-x-2">
               <Activity className={
                 fishingSafety?.status === 'Safe' ? 'text-green-600' : fishingSafety?.status === 'Unsafe' ? 'text-red-600' : 'text-amber-600'
               } size={20} />
               <div>
-                 <p className="text-sm text-gray-600">Weather Status</p>
-                <p className={
-                  `text-sm font-semibold ${
-                    fishingSafety?.status === 'Safe' ? 'text-green-700' : fishingSafety?.status === 'Unsafe' ? 'text-red-700' : 'text-amber-700'
-                  }`
-                }>
-                  {isFetchingWeather && 'Checking...'}
-                  {!isFetchingWeather && fishingSafety?.status || quickStats.weatherStatus}
-                </p>
+                <p className="text-sm text-gray-600">Weather Status</p>
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg">{getWeatherIcon()}</span>
+                  <p className={
+                    `text-sm font-semibold ${
+                      fishingSafety?.status === 'Safe' ? 'text-green-700' : fishingSafety?.status === 'Unsafe' ? 'text-red-700' : 'text-amber-700'
+                    }`
+                  }>
+                    {isFetchingWeather && 'Checking...'}
+                    {!isFetchingWeather && fishingSafety?.status || quickStats.weatherStatus}
+                  </p>
+                </div>
               </div>
             </div>
-            <div className="text-right text-xs text-gray-600">
-              {fishingSafety?.conditions && (
-                <div>
-                  {fishingSafety.conditions.windSpeedMetersPerSecond != null && (
-                    <div>Wind: {fishingSafety.conditions.windSpeedMetersPerSecond.toFixed(1)} m/s</div>
-                  )}
-                  {fishingSafety.conditions.waveHeightMeters != null && (
-                    <div>Waves: {fishingSafety.conditions.waveHeightMeters.toFixed(1)} m</div>
-                  )}
-                </div>
-              )}
-            </div>
           </div>
+
+          {/* Wind Status - Top Right Corner */}
+          {fishingSafety?.conditions?.windSpeedMetersPerSecond != null && (
+            <div className="absolute top-4 right-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-xl">💨</span>
+                <div className="text-right">
+                  <p className={`text-lg font-bold ${getWindColor(fishingSafety.conditions.windSpeedMetersPerSecond)}`}>
+                    {fishingSafety.conditions.windSpeedMetersPerSecond.toFixed(1)} m/s
+                  </p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">WIND</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Wave Status - Bottom Right Corner */}
+          {fishingSafety?.conditions?.waveHeightMeters != null && (
+            <div className="absolute bottom-4 right-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-xl">🌊</span>
+                <div className="text-right">
+                  <p className={`text-lg font-bold ${getWaveColor(fishingSafety.conditions.waveHeightMeters)}`}>
+                    {fishingSafety.conditions.waveHeightMeters.toFixed(1)} m
+                  </p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">WAVES</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Additional Weather Info - Bottom Left */}
           {!isFetchingWeather && fishingSafety?.reasons?.length ? (
-            <ul className="mt-2 list-disc list-inside text-xs text-gray-600">
-              {fishingSafety.reasons.slice(0,2).map((r: any, i: number) => (
-                <li key={i}>{r}</li>
-              ))}
-            </ul>
+            <div className="absolute bottom-4 left-4 max-w-[200px]">
+              <ul className="space-y-1 text-xs text-gray-600">
+                {fishingSafety.reasons.slice(0,1).map((r: any, i: number) => (
+                  <li key={i} className="flex items-center space-x-2">
+                    <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+                    <span>{r}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ) : null}
         </div>
 
@@ -307,8 +357,8 @@ const HomePage = ({ onZoneClick, currentLocation, locationPermission }: HomePage
             style={{ height: '100%', width: '100%' }}
             preferCanvas
           >
-            <FitMapToUserAndClusters userLocation={currentLocation} clusters={clusters} />
-            <MapClickRedirect userLocation={currentLocation} clusters={clusters} />
+            <FitMapToUserAndClusters userLocation={currentLocation || null} clusters={clusters} />
+            <MapClickRedirect userLocation={currentLocation || null} clusters={clusters} />
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

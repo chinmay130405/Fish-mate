@@ -1,14 +1,14 @@
 import { MapPin, Thermometer, Activity, Fish, Navigation, Satellite } from 'lucide-react'
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, useMapEvent } from 'react-leaflet'
 import { useNavigate } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet.heat';
 import { fishingZones, quickStats } from '../data/dummyData'
 import { geolocationService } from '../services/geolocationService'
 import type { GPSCoordinate } from '../data/dummyData'
 import { weatherService } from '../services/weatherService'
-import type { FishingSafetyResult } from '../services/weatherService'
+import boatIconUrl from '../assets/boat.png';
 
 interface HomePageProps {
   onZoneClick: (zoneId: string) => void
@@ -58,10 +58,35 @@ const HeatmapLayer = ({ points }: { points: [number, number, number][] }) => {
   return null;
 };
 
-const MapClickRedirect = () => {
+const FitMapToUserAndClusters = ({ userLocation, clusters }: { userLocation: GPSCoordinate | null, clusters: any[] }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (!map) return;
+    let bounds = [];
+    if (userLocation) bounds.push([userLocation.latitude, userLocation.longitude]);
+    clusters.forEach(c => {
+      if (typeof c.lat === 'number' && typeof c.lon === 'number') {
+        bounds.push([c.lat, c.lon]);
+      }
+    });
+    if (bounds.length > 0) {
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
+    }
+  }, [map, userLocation, clusters]);
+  return null;
+};
+
+const MapClickRedirect = ({ userLocation, clusters }: { userLocation: GPSCoordinate | null, clusters: any[] }) => {
   const navigate = useNavigate();
   useMapEvent('click', () => {
-    navigate('/map');
+    // Find best center: user location, else nearest cluster, else default
+    let center = [18.9000, 72.2000];
+    if (userLocation) {
+      center = [userLocation.latitude, userLocation.longitude];
+    } else if (clusters.length > 0) {
+      center = [clusters[0].lat, clusters[0].lon];
+    }
+    navigate(`/map?center=${center[0]},${center[1]}`);
   });
   return null;
 };
@@ -161,7 +186,14 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
     weight: 2
   })
 
-
+  // Create a custom boat icon for the user's location
+  const boatIcon = new L.Icon({
+    iconUrl: boatIconUrl,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -16],
+    className: 'boat-marker',
+  });
 
   return (
     <div className="p-4 space-y-4">
@@ -184,7 +216,7 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
                 fishingSafety?.status === 'Safe' ? 'text-green-600' : fishingSafety?.status === 'Unsafe' ? 'text-red-600' : 'text-amber-600'
               } size={20} />
               <div>
-                <p className="text-sm text-gray-600">Weather</p>
+                <p className="text-sm text-gray-600">Weather Status</p>
                 <p className={
                   `text-sm font-semibold ${
                     fishingSafety?.status === 'Safe' ? 'text-green-700' : fishingSafety?.status === 'Unsafe' ? 'text-red-700' : 'text-amber-700'
@@ -313,11 +345,12 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
         <h2 className="text-lg font-semibold mb-3 text-gray-800">Fishing Zone Map</h2>
         <div className="h-64 rounded-lg overflow-hidden border">
           <MapContainer
-            center={[18.9000, 72.2000]}
-            zoom={10}
+            center={currentLocation ? [currentLocation.latitude, currentLocation.longitude] : clusters.length > 0 ? [clusters[0].lat, clusters[0].lon] : [18.9000, 72.2000]}
+            zoom={13}
             style={{ height: '100%', width: '100%' }}
           >
-            <MapClickRedirect />
+            <FitMapToUserAndClusters userLocation={currentLocation} clusters={clusters} />
+            <MapClickRedirect userLocation={currentLocation} clusters={clusters} />
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -330,21 +363,7 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
             {currentLocation && (
               <Marker 
                 position={[currentLocation.latitude, currentLocation.longitude]}
-                icon={L.divIcon({
-                  className: 'current-location-marker',
-                  html: `
-                    <div style="
-                      width: 20px; 
-                      height: 20px; 
-                      background: #3b82f6; 
-                      border: 3px solid white; 
-                      border-radius: 50%; 
-                      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-                    "></div>
-                  `,
-                  iconSize: [20, 20],
-                  iconAnchor: [10, 10]
-                })}
+                icon={boatIcon}
               >
                 <Popup>
                   <div className="p-2">
@@ -362,31 +381,6 @@ const HomePage = ({ onZoneClick }: HomePageProps) => {
               </Marker>
             )}
             
-            {/* Fishing Zone Markers and Circles */}
-            {fishingZones.map((zone) => (
-              <div key={zone.id}>
-                <Marker position={zone.coordinates}>
-                  <Popup>
-                    <div className="p-2">
-                      <h3 className="font-semibold text-gray-800">{zone.name}</h3>
-                      <div className="space-y-1 text-sm">
-                        <p><strong>Probability:</strong> {zone.probability}</p>
-                        <p><strong>Temperature:</strong> {zone.temperature}°C</p>
-                        <p><strong>Depth:</strong> {zone.depth}m</p>
-                        <p><strong>Fish:</strong> {zone.fishType.join(', ')}</p>
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
-                
-                <Circle
-                  center={zone.coordinates}
-                  radius={2000} // 2km radius
-                  pathOptions={getCircleOptions(zone.probability)}
-                />
-              </div>
-            ))}
-
             {/* Dynamic Cluster Circles */}
             {clusters.map((cluster, idx) => (
               <Circle

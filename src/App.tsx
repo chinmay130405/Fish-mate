@@ -56,8 +56,8 @@ function App() {
       {/* Alert Notification Bar */}
       <AlertNotificationBar />
       {/* Header */}
-      <header className="bg-ocean-600 text-white p-4 shadow-lg" style={{backgroundColor: '#0284c7', color: 'white'}}>
-        <h1 className="text-xl font-bold text-center">Fish Zone Predictor</h1>
+      <header className="bg-ocean-600 text-white p-4 shadow-lg flex justify-between items-center" style={{backgroundColor: '#0284c7', color: 'white'}}>
+        <h1 className="text-xl font-bold flex-1 text-center">Fish Zone Predictor</h1>
       </header>
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto pb-16">

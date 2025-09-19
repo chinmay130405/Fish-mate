@@ -1,0 +1,52 @@
+{
+  "nav": {
+    "home": "",
+    "reports": "",
+    "alerts": "",
+    "profile": ""
+  },
+  "home": {
+    "title": "",
+    "pfzZones": "",
+    "weather": "",
+    "boundary": "",
+    "activeAlerts": "",
+    "fishingZoneMap": "",
+    "todaysPfzZones": "",
+    "clusterZones": "",
+    "tapToNavigate": "",
+    "highProbability": "",
+    "medium": "",
+    "low": ""
+  },
+  "map": {
+    "previousData": "",
+    "todaysData": "",
+    "clusterDetails": "",
+    "latitude": "",
+    "longitude": "",
+    "avgDepth": "",
+    "count": "",
+    "depth": "",
+    "todaysDataPoint": ""
+  },
+  "common": {
+    "good": "",
+    "safe": "",
+    "point": "",
+    "weight": "",
+    "na": ""
+  },
+  "languages": {
+    "english": "",
+    "hindi": "",
+    "tamil": "",
+    "telugu": "",
+    "bengali": "",
+    "gujarati": "",
+    "kannada": "",
+    "malayalam": "",
+    "marathi": "",
+    "punjabi": ""
+  }
+}

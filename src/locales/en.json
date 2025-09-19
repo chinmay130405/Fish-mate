@@ -1,0 +1,52 @@
+{
+  "nav": {
+    "home": "Home",
+    "reports": "Reports",
+    "alerts": "Alerts",
+    "profile": "Profile"
+  },
+  "home": {
+    "title": "Fish Zone Predictor",
+    "pfzZones": "PFZ Zones Today",
+    "weather": "Weather",
+    "boundary": "Boundary",
+    "activeAlerts": "Active Alerts",
+    "fishingZoneMap": "Fishing Zone Map",
+    "todaysPfzZones": "Today's PFZ Zones",
+    "clusterZones": "Cluster Zones",
+    "tapToNavigate": "📍 Tap to navigate",
+    "highProbability": "High Probability",
+    "medium": "Medium",
+    "low": "Low"
+  },
+  "map": {
+    "previousData": "Previous Data",
+    "todaysData": "Today's Data",
+    "clusterDetails": "Cluster Details",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "avgDepth": "Avg Depth",
+    "count": "Count",
+    "depth": "Depth",
+    "todaysDataPoint": "Today's Data Point"
+  },
+  "common": {
+    "good": "Good",
+    "safe": "Safe",
+    "point": "Point",
+    "weight": "Weight",
+    "na": "N/A"
+  },
+  "languages": {
+    "english": "English",
+    "hindi": "हिंदी",
+    "tamil": "தமிழ்",
+    "telugu": "తెలుగు",
+    "bengali": "বাংলা",
+    "gujarati": "ગુજરાતી",
+    "kannada": "ಕನ್ನಡ",
+    "malayalam": "മലയാളം",
+    "marathi": "मराठी",
+    "punjabi": "ਪੰਜਾਬੀ"
+  }
+}

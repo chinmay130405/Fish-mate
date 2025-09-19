@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { X, AlertTriangle, Info } from 'lucide-react'
 import { alerts } from '../data/dummyData'
+import type { Alert } from '../data/dummyData'
 
 const AlertNotificationBar = () => {
   const [isVisible, setIsVisible] = useState(false)
-  const [currentAlert, setCurrentAlert] = useState(null)
+  const [currentAlert, setCurrentAlert] = useState<Alert | null>(null)
 
   useEffect(() => {
     // Find the most recent government/high priority alert
@@ -28,7 +29,7 @@ const AlertNotificationBar = () => {
 
   if (!currentAlert || !isVisible) return null
 
-  const getAlertStyles = (severity) => {
+  const getAlertStyles = (severity: string) => {
     switch (severity) {
       case 'high': return 'bg-red-600 text-white'
       case 'medium': return 'bg-orange-500 text-white'
@@ -37,7 +38,7 @@ const AlertNotificationBar = () => {
     }
   }
 
-  const getIcon = (severity) => {
+  const getIcon = (severity: string) => {
     if (severity === 'high') return AlertTriangle
     return Info
   }

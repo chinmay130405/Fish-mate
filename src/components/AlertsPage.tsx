@@ -1,9 +1,61 @@
 import { AlertTriangle, Cloud, Navigation, Calendar, CheckCircle, Clock } from 'lucide-react'
-import { alerts } from '../data/dummyData'
+import { alerts, geofenceAlerts } from '../data/dummyData'
+import GeofenceAlertsComponent from './GeofenceAlertsComponent'
+import { useState, useEffect } from 'react'
+import { geolocationService } from '../services/geolocationService'
+import type { GPSCoordinate, GeofenceAlert } from '../data/dummyData'
 
 const AlertsPage = () => {
   const activeAlerts = alerts.filter(alert => alert.isActive)
   const recentAlerts = alerts.filter(alert => !alert.isActive).slice(0, 5)
+  
+  // Geofencing state
+  const [currentLocation, setCurrentLocation] = useState<GPSCoordinate | null>(null)
+  const [geofencingEnabled, setGeofencingEnabled] = useState(true)
+  const [liveGeofenceAlerts, setLiveGeofenceAlerts] = useState<GeofenceAlert[]>(geofenceAlerts)
+
+  useEffect(() => {
+    const initializeGeofencing = async () => {
+      if (geofencingEnabled) {
+        const hasPermission = await geolocationService.requestPermission()
+        if (hasPermission) {
+          // Set boundaries for geofencing
+          const { geofenceBoundaries } = await import('../data/dummyData')
+          geolocationService.setBoundaries(geofenceBoundaries)
+          
+          // Start watching location
+          geolocationService.startWatching(
+            (position) => {
+              setCurrentLocation(position)
+            },
+            (alert) => {
+              setLiveGeofenceAlerts(prev => [...prev, alert])
+            }
+          )
+        }
+      } else {
+        geolocationService.stopWatching()
+      }
+    }
+
+    initializeGeofencing()
+
+    return () => {
+      geolocationService.stopWatching()
+    }
+  }, [geofencingEnabled])
+
+  const handleDismissGeofenceAlert = (alertId: string) => {
+    setLiveGeofenceAlerts(prev => 
+      prev.map(alert => 
+        alert.id === alertId ? { ...alert, isActive: false } : alert
+      )
+    )
+  }
+
+  const handleToggleGeofencing = (enabled: boolean) => {
+    setGeofencingEnabled(enabled)
+  }
 
   const getAlertIcon = (type: string) => {
     switch (type) {
@@ -40,6 +92,15 @@ const AlertsPage = () => {
         <h1 className="text-xl font-bold text-gray-800 mb-2">Alerts & Notifications</h1>
         <p className="text-gray-600">Stay informed about weather, boundaries, and regulations</p>
       </div>
+
+      {/* Geofencing Alerts */}
+      <GeofenceAlertsComponent
+        alerts={liveGeofenceAlerts}
+        currentLocation={currentLocation}
+        onDismissAlert={handleDismissGeofenceAlert}
+        onToggleGeofencing={handleToggleGeofencing}
+        geofencingEnabled={geofencingEnabled}
+      />
 
       {/* Active Alerts */}
       <div className="bg-white rounded-lg p-4 shadow-sm border">

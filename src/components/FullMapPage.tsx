@@ -2,26 +2,35 @@ import { MapContainer, TileLayer, Circle, Popup, useMap } from 'react-leaflet';
 import 'leaflet.heat';
 import { useEffect, useState } from 'react';
 
-const HeatmapLayer = ({ points }: { points: any[] }) => {
+const HeatmapLayer = ({ points }: { points: [number, number, number][] }) => {
   const map = useMap();
   useEffect(() => {
     if (!map || !points.length) return;
-    if (map._heatLayer) {
-      map.removeLayer(map._heatLayer);
+    const mapWithHeatLayer = map as any;
+    if (mapWithHeatLayer._heatLayer) {
+      map.removeLayer(mapWithHeatLayer._heatLayer);
     }
     const heatData = points
       .filter(p => typeof p[0] === 'number' && typeof p[1] === 'number' && !isNaN(p[0]) && !isNaN(p[1]))
       .map(p => [p[0], p[1], p[2] || 1]);
-    // @ts-ignore
-    map._heatLayer = window.L.heatLayer(heatData, {
+    
+    const L = (window as any).L;
+    const heatLayer = L.heatLayer(heatData, {
       radius: 25,
       blur: 15,
       maxZoom: 12,
       minOpacity: 0.3,
       gradient: {0.2: '#fbbf24', 0.4: '#f59e42', 0.6: '#f87171', 0.8: '#ef4444', 1.0: '#b91c1c'}
-    }).addTo(map);
+    });
+    
+    mapWithHeatLayer._heatLayer = heatLayer;
+    heatLayer.addTo(map);
+    
     return () => {
-      if (map._heatLayer) map.removeLayer(map._heatLayer);
+      if (mapWithHeatLayer._heatLayer) {
+        map.removeLayer(mapWithHeatLayer._heatLayer);
+        mapWithHeatLayer._heatLayer = null;
+      }
     };
   }, [map, points]);
   return null;

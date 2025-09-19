@@ -38,6 +38,34 @@ export interface UserProfile {
   avgCatch: number;
 }
 
+export interface GPSCoordinate {
+  latitude: number;
+  longitude: number;
+  timestamp: number;
+  accuracy?: number;
+}
+
+export interface GeofenceBoundary {
+  id: string;
+  name: string;
+  type: 'regional' | 'country' | 'eez' | 'restricted';
+  coordinates: [number, number][];
+  description: string;
+}
+
+export interface GeofenceAlert {
+  id: string;
+  type: 'geofence_entry' | 'geofence_exit' | 'boundary_warning';
+  boundaryId: string;
+  boundaryName: string;
+  severity: 'high' | 'medium' | 'low';
+  title: string;
+  description: string;
+  timestamp: string;
+  location: GPSCoordinate;
+  isActive: boolean;
+}
+
 // Dummy fishing zones in ocean areas around Indian coast
 export const fishingZones: FishingZone[] = [
   {
@@ -160,9 +188,68 @@ export const userProfile: UserProfile = {
   avgCatch: 24.5
 };
 
+// Geofence boundaries for Indian coastal waters
+export const geofenceBoundaries: GeofenceBoundary[] = [
+  {
+    id: 'eez-india-west',
+    name: 'India EEZ Western Coast',
+    type: 'eez',
+    coordinates: [
+      [18.0, 71.0], [19.5, 71.0], [20.0, 70.5], [19.5, 70.0], [18.0, 70.5], [18.0, 71.0]
+    ],
+    description: 'Exclusive Economic Zone boundary for Western Indian coast'
+  },
+  {
+    id: 'territorial-mumbai',
+    name: 'Mumbai Territorial Waters',
+    type: 'regional',
+    coordinates: [
+      [18.7, 72.5], [19.3, 72.5], [19.3, 72.0], [18.7, 72.0], [18.7, 72.5]
+    ],
+    description: '12 nautical mile territorial boundary around Mumbai coast'
+  },
+  {
+    id: 'restricted-naval',
+    name: 'Naval Restricted Zone',
+    type: 'restricted',
+    coordinates: [
+      [18.9, 72.7], [19.1, 72.7], [19.1, 72.6], [18.9, 72.6], [18.9, 72.7]
+    ],
+    description: 'Restricted naval operations area - entry prohibited'
+  }
+];
+
+export const geofenceAlerts: GeofenceAlert[] = [
+  {
+    id: 'geo-alert-001',
+    type: 'boundary_warning',
+    boundaryId: 'territorial-mumbai',
+    boundaryName: 'Mumbai Territorial Waters',
+    severity: 'medium',
+    title: 'Approaching Territorial Boundary',
+    description: 'You are within 2 nautical miles of the territorial water boundary.',
+    timestamp: '2025-09-18T10:15:00Z',
+    location: { latitude: 18.85, longitude: 72.45, timestamp: Date.now() },
+    isActive: true
+  },
+  {
+    id: 'geo-alert-002',
+    type: 'geofence_entry',
+    boundaryId: 'eez-india-west',
+    boundaryName: 'India EEZ Western Coast',
+    severity: 'low',
+    title: 'Entered Indian EEZ',
+    description: 'You have entered Indian Exclusive Economic Zone waters.',
+    timestamp: '2025-09-18T08:30:00Z',
+    location: { latitude: 18.5, longitude: 71.2, timestamp: Date.now() - 6300000 },
+    isActive: false
+  }
+];
+
 export const quickStats = {
   todayZones: 5,
   weatherStatus: 'Safe',
   boundaryStatus: 'Within Limits',
-  activeAlerts: alerts.filter(alert => alert.isActive).length
+  activeAlerts: alerts.filter(alert => alert.isActive).length,
+  currentLocation: { latitude: 18.8500, longitude: 72.3000 } as GPSCoordinate
 };

@@ -51,13 +51,13 @@ const AlertNotificationBar = () => {
       onClick={() => navigate('/alerts')}
       style={{ cursor: 'pointer' }}
     >
-      <div className={`${getAlertStyles(currentAlert.severity)} px-4 py-3 shadow-lg`}>
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
-          <div className="flex items-center space-x-3 flex-1 min-w-0">
+      <div className={`${getAlertStyles(currentAlert.severity)} px-2 py-2 sm:px-4 sm:py-3 shadow-lg w-full`}>
+        <div className="flex flex-col sm:flex-row items-center justify-between max-w-full sm:max-w-4xl mx-auto gap-2 sm:gap-0">
+          <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0 w-full">
             <Icon size={20} className="flex-shrink-0" />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold truncate">{currentAlert.title}</p>
-              <p className="text-xs opacity-90 truncate">{currentAlert.description}</p>
+              <p className="text-xs sm:text-sm font-semibold truncate">{currentAlert.title}</p>
+              <p className="text-[10px] sm:text-xs opacity-90 truncate">{currentAlert.description}</p>
             </div>
           </div>
           <button 
@@ -65,7 +65,7 @@ const AlertNotificationBar = () => {
               e.stopPropagation()
               setIsVisible(false)
             }}
-            className="flex-shrink-0 ml-4 hover:opacity-75 transition-opacity"
+            className="flex-shrink-0 ml-2 sm:ml-4 hover:opacity-75 transition-opacity"
             aria-label="Close alert"
           >
             <X size={18} />

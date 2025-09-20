@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import L from 'leaflet';
 import boatIconUrl from '../assets/boat.png';
 import { useNavigate, useLocation } from 'react-router-dom';
+import EEZBoundary from './EEZBoundary';
 
 const HeatmapLayer = ({ points }: { points: [number, number, number][] }) => {
   const map = useMap();
@@ -126,6 +127,10 @@ const FullMapPage = ({ currentLocation }: FullMapPageProps) => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
+        
+        {/* EEZ Boundary Layer */}
+        <EEZBoundary />
+        
         {/* User's Location Marker - always shown if available */}
         {currentLocation && (
           <Marker 

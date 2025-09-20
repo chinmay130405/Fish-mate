@@ -121,7 +121,6 @@ const FishPrediction: React.FC = () => {
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
           <Camera className="mx-auto text-gray-400 mb-4" size={48} />
           <p className="text-gray-600 mb-4">Upload an image of a fish to identify its species</p>
-          
           <label className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">
             <Upload className="mr-2" size={20} />
             Choose Image
@@ -194,7 +193,7 @@ const FishPrediction: React.FC = () => {
                    '⚠️ Error Mode'}
                 </span>
               </div>
-              
+
               <div className="space-y-3">
                 {/* Main Prediction */}
                 <div className="bg-white rounded-lg p-3 border">

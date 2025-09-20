@@ -59,7 +59,7 @@ function App() {
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto pb-16">
         <Routes>
-          <Route path="/" element={<HomePage onZoneClick={() => {}} currentLocation={currentLocation} locationPermission={locationPermission} />} />
+          <Route path="/" element={<HomePage currentLocation={currentLocation} locationPermission={locationPermission} />} />
           <Route path="/map" element={<FullMapPage currentLocation={currentLocation} />} />
           <Route path="/combined-map" element={<CombinedMapPage currentLocation={currentLocation} />} />
           <Route path="/full-map" element={<FullMapPage currentLocation={currentLocation} />} />

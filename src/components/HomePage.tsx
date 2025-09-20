@@ -8,6 +8,7 @@ import { fishingZones, quickStats } from '../data/dummyData'
 import type { GPSCoordinate } from '../data/dummyData'
 import { weatherService } from '../services/weatherService'
 import boatIconUrl from '../assets/boat.png';
+import FishPrediction from './FishPrediction';
 
 interface HomePageProps {
   onZoneClick: (zoneId: string) => void
@@ -296,6 +297,9 @@ const HomePage = ({ onZoneClick, currentLocation, locationPermission }: HomePage
           </div>
         )}
       </div>
+
+      {/* Fish Prediction Section */}
+      <FishPrediction />
 
       {/* Map Section */}
       <div className="bg-white rounded-lg p-4 shadow-sm border">

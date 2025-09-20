@@ -4,3 +4,7 @@ fastapi
 uvicorn
 pandas
 python-multipart
+Pillow
+# tensorflow  # Disabled for demo - uncomment for production ML model
+# numpy       # Disabled for demo - uncomment for production ML model
+# scikit-learn

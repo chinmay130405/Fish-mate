@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react';
 import L from 'leaflet';
 import boatIconUrl from '../assets/boat.png';
 import { useNavigate } from 'react-router-dom';
-import EEZBoundary from './EEZBoundary';
 
 const boatIcon = new L.Icon({
   iconUrl: boatIconUrl,
@@ -83,10 +82,6 @@ const CombinedMapPage = ({ currentLocation }: CombinedMapPageProps) => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        
-        {/* EEZ Boundary Layer */}
-        <EEZBoundary />
-        
         {/* User's Location Marker */}
         {currentLocation && (
           <Marker 

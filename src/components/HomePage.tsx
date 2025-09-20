@@ -23,7 +23,6 @@ import { weatherService } from '../services/weatherService'
 import boatIconUrl from '../assets/boat.png';
 import JourneyTracker from './JourneyTracker'
 import { default as FishSpeciesPrediction } from './FishSpeciesPrediction'
-import EEZBoundary from './EEZBoundary'
 
 interface HomePageProps {
   currentLocation?: GPSCoordinate | null
@@ -430,9 +429,6 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
-            
-            {/* EEZ Boundary Layer */}
-            <EEZBoundary />
             
             {/* Heatmap Layer */}
             <HeatmapLayer points={clusters.map(c => [c.lat, c.lon, (c.count || 0) / 1000])} />

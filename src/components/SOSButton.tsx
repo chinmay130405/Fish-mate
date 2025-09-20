@@ -47,19 +47,8 @@ const SOSButton = () => {
     // 2. Send SOS signal to coast guard
     // 3. Alert emergency contacts
     // 4. Start emergency tracking
-    alert(`🚨 SOS EMERGENCY ALERT SENT! 🚨
-
-📍 Location: ${currentLocation}
-🕒 Time: ${new Date().toLocaleTimeString()}
-📅 Date: ${new Date().toLocaleDateString()}
-
-✅ Coast Guard Notified
-✅ Emergency Contacts Alerted
-✅ Maritime Rescue Coordinated
-✅ GPS Tracking Activated
-
-Help is on the way. Stay calm and stay visible.`)
     
+    // SOS signal sent silently - no alert popup needed
     setTimeout(() => {
       setIsSOSActive(false)
     }, 3000)
@@ -73,7 +62,7 @@ Help is on the way. Stay calm and stay visible.`)
   return (
     <>
       {/* SOS Button - Enhanced Design */}
-      <div className="fixed bottom-24 right-4 z-50">
+      <div className="fixed bottom-24 right-4 z-[9999]">
         {/* SOS Button with improved visibility */}
         <button
           onClick={handleSOSPress}
@@ -121,7 +110,7 @@ Help is on the way. Stay calm and stay visible.`)
 
       {/* Enhanced SOS Modal */}
       {isSOSActive && countdown > 0 && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60] p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[99999] p-4">
           <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border-2 border-red-200">
             <div className="text-center">
               {/* Animated Emergency Icon */}

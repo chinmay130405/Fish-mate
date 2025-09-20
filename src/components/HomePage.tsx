@@ -7,8 +7,13 @@ import 'leaflet.heat';
 import { quickStats } from '../data/dummyData'
 import type { GPSCoordinate } from '../data/dummyData'
 import { weatherService } from '../services/weatherService'
-import boatIconUrl from '../assets/boat.png';
-import FishPrediction from './FishPrediction';
+import boatIconUrl from '../assets/boat.png'
+import JourneyTracker from './JourneyTracker'
+import BoundaryLayer from './BoundaryLayer'
+import BoundaryAlertBar from './BoundaryAlertBar'
+import GeofenceTestPanel from './GeofenceTestPanel'
+import { geofencingService } from '../services/geofencingService'
+import type { GeofenceAlert } from '../services/geofencingService'
 
 interface HomePageProps {
   currentLocation?: GPSCoordinate | null
@@ -96,9 +101,13 @@ const MapClickRedirect = ({ userLocation, clusters }: { userLocation: GPSCoordin
 };
 
 const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
+  const navigate = useNavigate()
   const [clusters, setClusters] = useState<any[]>([])
   const [fishingSafety, setFishingSafety] = useState<any>(null)
   const [isFetchingWeather, setIsFetchingWeather] = useState<boolean>(false)
+  const [boundaryAlerts, setBoundaryAlerts] = useState<GeofenceAlert[]>([])
+  const [geofencingActive, setGeofencingActive] = useState<boolean>(false)
+  const [showTestPanel, setShowTestPanel] = useState<boolean>(false)
 
   // Enhanced color functions for weather conditions
   const getWindColor = (windSpeed?: number) => {
@@ -146,6 +155,51 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
     fetchWeather()
   }, [currentLocation])
 
+  // Start/stop geofencing monitoring based on location availability
+  useEffect(() => {
+    if (currentLocation && locationPermission === 'granted' && !geofencingActive) {
+      // Start geofencing monitoring
+      geofencingService.startMonitoring((alerts: GeofenceAlert[]) => {
+        setBoundaryAlerts(alerts)
+        // Handle critical alerts immediately
+        const criticalAlerts = alerts.filter(alert => 
+          alert.severity === 'high' || alert.type === 'violation'
+        )
+        if (criticalAlerts.length > 0) {
+          // Show notifications for critical alerts
+          criticalAlerts.forEach(alert => {
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification(`Maritime Boundary Alert`, {
+                body: alert.message,
+                icon: '/favicon.ico'
+              })
+            }
+          })
+        }
+      })
+      setGeofencingActive(true)
+    } else if ((!currentLocation || locationPermission !== 'granted') && geofencingActive) {
+      // Stop geofencing monitoring
+      geofencingService.stopMonitoring()
+      setGeofencingActive(false)
+      setBoundaryAlerts([])
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (geofencingActive) {
+        geofencingService.stopMonitoring()
+      }
+    }
+  }, [currentLocation, locationPermission, geofencingActive])
+
+  // Request notification permission on component mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
+  }, [])
+
   const formatCoordinate = (coord: number, type: 'lat' | 'lng') => {
     const direction = type === 'lat' ? (coord >= 0 ? 'N' : 'S') : (coord >= 0 ? 'E' : 'W')
     return `${Math.abs(coord).toFixed(4)}°${direction}`
@@ -176,6 +230,8 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
 
   return (
     <div className="p-4 space-y-4">
+      {/* Boundary Alert Bar */}
+      <BoundaryAlertBar alerts={boundaryAlerts} />
       {/* Quick Info Cards */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-white rounded-lg p-4 shadow-sm border">
@@ -188,7 +244,10 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-4 shadow-sm border relative min-h-[120px]">
+        <button 
+          onClick={() => navigate('/weather')}
+          className="bg-white rounded-lg p-4 shadow-sm border relative min-h-[120px] w-full text-left hover:shadow-md hover:bg-gray-50 transition-all duration-200 transform hover:scale-[1.02] cursor-pointer"
+        >
           {/* Weather Status - Left Side Center */}
           <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
             <div className="flex items-center space-x-2">
@@ -210,6 +269,11 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
                 </div>
               </div>
             </div>
+          </div>
+          
+          {/* Click indicator */}
+          <div className="absolute top-2 right-2 text-gray-400 text-xs">
+            Tap for details →
           </div>
 
           {/* Wind Status - Top Right Corner */}
@@ -255,7 +319,7 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
               </ul>
             </div>
           ) : null}
-        </div>
+        </button>
 
         <div className="bg-white rounded-lg p-4 shadow-sm border">
           <div className="flex items-center space-x-2">
@@ -283,16 +347,34 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
             <Satellite className="text-blue-600" size={20} />
-            <h2 className="text-lg font-semibold text-gray-800">GPS Location</h2>
+            <h2 className="text-lg font-semibold text-gray-800">GPS & Boundaries</h2>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className={`w-2 h-2 rounded-full ${
-              locationPermission === 'granted' && currentLocation ? 'bg-green-500' : 
-              locationPermission === 'denied' ? 'bg-red-500' : 'bg-yellow-500'
-            }`}></div>
-            <span className={`text-sm font-medium ${getLocationStatusColor()}`}>
-              {getLocationStatus()}
-            </span>
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${
+                locationPermission === 'granted' && currentLocation ? 'bg-green-500' : 
+                locationPermission === 'denied' ? 'bg-red-500' : 'bg-yellow-500'
+              }`}></div>
+              <span className={`text-sm font-medium ${getLocationStatusColor()}`}>
+                {getLocationStatus()}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${
+                geofencingActive ? 'bg-green-500' : 'bg-gray-400'
+              }`}></div>
+              <span className={`text-sm font-medium ${
+                geofencingActive ? 'text-green-600' : 'text-gray-500'
+              }`}>
+                {geofencingActive ? 'Monitoring' : 'Inactive'}
+              </span>
+              <button
+                onClick={() => setShowTestPanel(true)}
+                className="text-xs px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors"
+              >
+                Test
+              </button>
+            </div>
           </div>
         </div>
 
@@ -326,6 +408,32 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
                 </span>
               </div>
             </div>
+            
+            {/* Boundary Alerts Summary */}
+            {geofencingActive && (
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Boundary Status:</span>
+                  <span className={`text-sm font-medium ${
+                    boundaryAlerts.length === 0 ? 'text-green-600' : 
+                    boundaryAlerts.some(a => a.type === 'violation') ? 'text-red-600' :
+                    'text-amber-600'
+                  }`}>
+                    {boundaryAlerts.length === 0 ? 'Safe Zone' : 
+                     boundaryAlerts.some(a => a.type === 'violation') ? 'Violation!' :
+                     `${boundaryAlerts.length} Alert${boundaryAlerts.length > 1 ? 's' : ''}`}
+                  </span>
+                </div>
+                {boundaryAlerts.length > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Nearest Boundary:</span>
+                    <span className="text-sm font-medium">
+                      {Math.min(...boundaryAlerts.map(a => a.distance)).toFixed(1)}km
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ) : locationPermission === 'denied' ? (
           <div className="text-center py-4">
@@ -348,9 +456,6 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
         )}
       </div>
 
-      {/* Fish Prediction Section */}
-      <FishPrediction />
-
       {/* Map Section */}
       <div className="bg-white rounded-lg p-4 shadow-sm border">
          <h2 className="text-lg font-semibold mb-3 text-gray-800">Fishing Zone Map</h2>
@@ -367,6 +472,9 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
+            
+            {/* Boundary Layer */}
+            <BoundaryLayer showBoundaries={true} />
             
             {/* Heatmap Layer */}
             <HeatmapLayer points={clusters.map(c => [c.lat, c.lon, (c.count || 0) / 1000])} />
@@ -445,21 +553,56 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
         </div>
 
         {/* Legend */}
-        <div className="mt-3 flex items-center justify-center space-x-4 text-sm">
+        <div className="mt-3 space-y-2">
+          {/* Fish Density Legend */}
+          <div className="flex items-center justify-center space-x-4 text-sm">
             <div className="flex items-center space-x-1">
               <div className="w-3 h-3 rounded-full bg-blue-500"></div>
               <span>High Density</span>
             </div>
-          <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+            <div className="flex items-center space-x-1">
+              <div className="w-3 h-3 rounded-full bg-amber-500"></div>
               <span>Medium Density</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            </div>
+            <div className="flex items-center space-x-1">
+              <div className="w-3 h-3 rounded-full bg-red-500"></div>
               <span>Low Density</span>
+            </div>
+          </div>
+          
+          {/* Boundary Legend */}
+          <div className="border-t pt-2 space-y-1">
+            <p className="text-xs font-medium text-gray-700 text-center">Maritime Boundaries</p>
+            <div className="flex items-center justify-center space-x-3 text-xs">
+              <div className="flex items-center space-x-1">
+                <div className="w-3 h-1 bg-red-500"></div>
+                <span>Restricted</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-3 h-1 bg-blue-500" style={{ borderTop: '1px dashed #3b82f6' }}></div>
+                <span>Territorial</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-3 h-1 bg-green-500" style={{ borderTop: '1px dashed #10b981' }}></div>
+                <span>EEZ</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-3 h-1 bg-amber-500"></div>
+                <span>Protected</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Journey Tracker Section */}
+      <JourneyTracker currentLocation={currentLocation} />
+      
+      {/* Geofencing Test Panel */}
+      <GeofenceTestPanel 
+        isVisible={showTestPanel} 
+        onClose={() => setShowTestPanel(false)} 
+      />
     </div>
   )
 }

@@ -5,6 +5,7 @@ import HomePage from './components/HomePage'
 import ReportsPage from './components/ReportsPage'
 import AlertsPage from './components/AlertsPage'
 import ProfilePage from './components/ProfilePage'
+import WeatherDetailPage from './components/WeatherDetailPage'
 import BottomNavigation from './components/BottomNavigation'
 import AlertNotificationBar from './components/AlertNotificationBar'
 import SOSButton from './components/SOSButton'
@@ -60,6 +61,7 @@ function App() {
       <main className="flex-1 overflow-y-auto pb-16">
         <Routes>
           <Route path="/" element={<HomePage currentLocation={currentLocation} locationPermission={locationPermission} />} />
+          <Route path="/weather" element={<WeatherDetailPage currentLocation={currentLocation} />} />
           <Route path="/map" element={<FullMapPage currentLocation={currentLocation} />} />
           <Route path="/combined-map" element={<CombinedMapPage currentLocation={currentLocation} />} />
           <Route path="/full-map" element={<FullMapPage currentLocation={currentLocation} />} />

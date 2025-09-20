@@ -61,7 +61,10 @@ const AlertNotificationBar = () => {
             </div>
           </div>
           <button 
-            onClick={() => setIsVisible(false)}
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsVisible(false)
+            }}
             className="flex-shrink-0 ml-4 hover:opacity-75 transition-opacity"
             aria-label="Close alert"
           >

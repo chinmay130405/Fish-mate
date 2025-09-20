@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Home, FileText, AlertTriangle, User } from 'lucide-react'
 import { Routes, Route } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import HomePage from './components/HomePage'
 import ReportsPage from './components/ReportsPage'
 import AlertsPage from './components/AlertsPage'
@@ -15,6 +16,7 @@ import { geolocationService } from './services/geolocationService';
 import type { GPSCoordinate } from './data/dummyData';
 
 function App() {
+  const { t } = useTranslation();
   const [currentLocation, setCurrentLocation] = useState<GPSCoordinate | null>(null);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'pending'>('pending');
 
@@ -43,10 +45,10 @@ function App() {
   }, []);
 
   const navigationItems = [
-    { id: 'home', icon: Home, label: 'Home', route: '/' },
-    { id: 'reports', icon: FileText, label: 'Reports', route: '/reports' },
-    { id: 'alerts', icon: AlertTriangle, label: 'Alerts', route: '/alerts' },
-    { id: 'profile', icon: User, label: 'Profile', route: '/profile' }
+    { id: 'home', icon: Home, label: t('nav.home'), route: '/' },
+    { id: 'reports', icon: FileText, label: t('nav.reports'), route: '/reports' },
+    { id: 'alerts', icon: AlertTriangle, label: t('nav.alerts'), route: '/alerts' },
+    { id: 'profile', icon: User, label: t('nav.profile'), route: '/profile' }
   ];
 
   return (

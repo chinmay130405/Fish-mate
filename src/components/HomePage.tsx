@@ -15,6 +15,7 @@ import { MapPin, Thermometer, Activity, Fish, Navigation, Satellite } from 'luci
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, useMapEvent } from 'react-leaflet'
 import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import L from 'leaflet'
 import 'leaflet.heat';
 import { quickStats } from '../data/dummyData'
@@ -23,6 +24,8 @@ import { weatherService } from '../services/weatherService'
 import boatIconUrl from '../assets/boat.png';
 import JourneyTracker from './JourneyTracker'
 import { default as FishSpeciesPrediction } from './FishSpeciesPrediction'
+import MarineBoundaryLayer from './MarineBoundaryLayer'
+import Header from './Header'
 
 interface HomePageProps {
   currentLocation?: GPSCoordinate | null
@@ -111,10 +114,11 @@ const MapClickRedirect = ({ userLocation, clusters }: { userLocation: GPSCoordin
 
 const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [clusters, setClusters] = useState<any[]>([])
   const [fishingSafety, setFishingSafety] = useState<any>(null)
   const [isFetchingWeather, setIsFetchingWeather] = useState<boolean>(false)
-    const [persistedStatus, setPersistedStatus] = useState<string | null>(null)
+  const [persistedStatus, setPersistedStatus] = useState<string | null>(null)
 
   // Enhanced color functions for weather conditions
   const getWindColor = (windSpeed?: number) => {
@@ -199,14 +203,16 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
   });
 
   return (
-    <div className="p-4 space-y-4">
-      {/* Quick Info Cards */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white rounded-lg p-4 shadow-sm border">
-          <div className="flex items-center space-x-2">
-            <MapPin className="text-ocean-600" size={20} />
-            <div>
-               <p className="text-sm text-gray-600">PFZ Zones Today</p>
+    <>
+      <Header title={t('nav.home')} />
+      <div className="p-4 space-y-4">
+        {/* Quick Info Cards */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white rounded-lg p-4 shadow-sm border">
+            <div className="flex items-center space-x-2">
+              <MapPin className="text-ocean-600" size={20} />
+              <div>
+                 <p className="text-sm text-gray-600">{t('home.pfzZonesToday')}</p>
               <p className="text-xl font-bold text-ocean-700">{quickStats.todayZones}</p>
             </div>
           </div>
@@ -227,9 +233,9 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
                       fishingSafety?.status === 'Safe' ? 'text-green-600' : fishingSafety?.status === 'Unsafe' ? 'text-red-600' : 'text-amber-600'
                     } size={20} />
                     <p className="text-xs font-semibold truncate" style={{maxWidth: '50vw'}}>
-                      {isFetchingWeather && 'Checking...'}
-                      {!isFetchingWeather && fishingSafety?.status === 'Safe' && 'Safe'}
-                      {!isFetchingWeather && fishingSafety?.status === 'Unsafe' && 'Unsafe'}
+                      {isFetchingWeather && t('home.checking')}
+                      {!isFetchingWeather && fishingSafety?.status === 'Safe' && t('common.safe')}
+                      {!isFetchingWeather && fishingSafety?.status === 'Unsafe' && t('weather.unsafe')}
                       {!isFetchingWeather && !['Safe','Unsafe'].includes(fishingSafety?.status || '') && quickStats.weatherStatus}
                     </p>
                   </div>
@@ -243,14 +249,14 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
                   <div className="min-w-0 w-full">
                     {/* Only show status on very small screens */}
                     <p className="block sm:hidden text-xs font-semibold truncate" style={{maxWidth: '50vw'}}>
-                      {isFetchingWeather && 'Checking...'}
-                      {!isFetchingWeather && fishingSafety?.status === 'Safe' && 'Safe to fish'}
-                      {!isFetchingWeather && fishingSafety?.status === 'Unsafe' && 'Unsafe to fish'}
+                      {isFetchingWeather && t('home.checking')}
+                      {!isFetchingWeather && fishingSafety?.status === 'Safe' && t('weather.safeToFish')}
+                      {!isFetchingWeather && fishingSafety?.status === 'Unsafe' && t('weather.unsafeToFish')}
                       {!isFetchingWeather && !['Safe','Unsafe'].includes(fishingSafety?.status || '') && quickStats.weatherStatus}
                     </p>
                     {/* Full info for larger screens */}
                     <div className="hidden sm:flex flex-col">
-                      <p className="text-sm text-gray-600 truncate">Weather Status</p>
+                      <p className="text-sm text-gray-600 truncate">{t('home.weatherStatus')}</p>
                       <div className="flex items-center space-x-2 min-w-0">
                         <span className="text-lg">{getWeatherIcon()}</span>
                         <p className={
@@ -258,7 +264,7 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
                             fishingSafety?.status === 'Safe' ? 'text-green-700' : fishingSafety?.status === 'Unsafe' ? 'text-red-700' : 'text-amber-700'
                           }`
                         }>
-                          {isFetchingWeather && 'Checking...'}
+                          {isFetchingWeather && t('home.checking')}
                           {!isFetchingWeather && fishingSafety?.status || quickStats.weatherStatus}
                         </p>
                       </div>
@@ -271,7 +277,7 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
           
           {/* Click indicator */}
           <div className="absolute top-2 right-2 text-gray-400 text-xs">
-            Tap for details →
+            {t('home.tapForDetails')}
           </div>
 
           {/* Wind Status - Top Right Corner */}
@@ -283,7 +289,7 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
                   <p className={`text-lg font-bold ${getWindColor(fishingSafety.conditions.windSpeedMetersPerSecond)}`}>
                     {fishingSafety.conditions.windSpeedMetersPerSecond.toFixed(1)} m/s
                   </p>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">WIND</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">{t('weather.wind')}</p>
                 </div>
               </div>
             </div>
@@ -298,7 +304,7 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
                   <p className={`text-lg font-bold ${getWaveColor(fishingSafety.conditions.waveHeightMeters)}`}>
                     {fishingSafety.conditions.waveHeightMeters.toFixed(1)} m
                   </p>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">WAVES</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">{t('weather.waves')}</p>
                 </div>
               </div>
             </div>
@@ -323,7 +329,7 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
           <div className="flex items-center space-x-2">
             <Thermometer className="text-blue-600" size={20} />
             <div>
-               <p className="text-sm text-gray-600">Boundary Status</p>
+               <p className="text-sm text-gray-600">{t('home.boundaryStatus')}</p>
               <p className="text-sm font-semibold text-blue-700">{quickStats.boundaryStatus}</p>
             </div>
           </div>
@@ -333,7 +339,7 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
           <div className="flex items-center space-x-2">
             <Fish className="text-orange-600" size={20} />
             <div>
-               <p className="text-sm text-gray-600">Active Alerts</p>
+               <p className="text-sm text-gray-600">{t('home.activeAlerts')}</p>
               <p className="text-xl font-bold text-orange-700">{quickStats.activeAlerts}</p>
             </div>
           </div>
@@ -345,7 +351,7 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
             <Satellite className="text-blue-600" size={20} />
-            <h2 className="text-lg font-semibold text-gray-800">GPS Location</h2>
+            <h2 className="text-lg font-semibold text-gray-800">{t('home.gpsLocation')}</h2>
           </div>
           <div className="flex items-center space-x-2">
             <div className={`w-2 h-2 rounded-full ${
@@ -362,13 +368,13 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Latitude:</span>
+                <span className="text-sm text-gray-600">{t('map.latitude')}:</span>
                 <span className="text-sm font-mono font-medium">
                   {formatCoordinate(currentLocation.latitude, 'lat')}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Longitude:</span>
+                <span className="text-sm text-gray-600">{t('map.longitude')}:</span>
                 <span className="text-sm font-mono font-medium">
                   {formatCoordinate(currentLocation.longitude, 'lng')}
                 </span>
@@ -377,12 +383,12 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
             <div className="space-y-2">
               {currentLocation.accuracy && (
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Accuracy:</span>
+                  <span className="text-sm text-gray-600">{t('home.accuracy')}:</span>
                   <span className="text-sm font-medium">±{Math.round(currentLocation.accuracy)}m</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Last Update:</span>
+                <span className="text-sm text-gray-600">{t('home.lastUpdate')}:</span>
                 <span className="text-sm font-medium">
                   {new Date(currentLocation.timestamp).toLocaleTimeString()}
                 </span>
@@ -393,19 +399,19 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
           <div className="text-center py-4">
             <Navigation className="text-gray-400 mx-auto mb-2" size={32} />
             <p className="text-gray-600 text-sm">
-              Location access is required for geofencing features.
+              {t('home.locationAccessRequired')}
             </p>
             <button 
               onClick={() => window.location.reload()}
               className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
             >
-              Enable Location
+              {t('home.enableLocation')}
             </button>
           </div>
         ) : (
           <div className="text-center py-4">
             <div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-2"></div>
-            <p className="text-gray-600 text-sm">Getting your location...</p>
+            <p className="text-gray-600 text-sm">{t('home.gettingLocation')}</p>
           </div>
         )}
       </div>
@@ -415,7 +421,7 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
 
       {/* Map Section */}
       <div className="bg-white rounded-lg p-4 shadow-sm border">
-         <h2 className="text-lg font-semibold mb-3 text-gray-800">Fishing Zone Map</h2>
+         <h2 className="text-lg font-semibold mb-3 text-gray-800">{t('home.fishingZoneMap')}</h2>
         <div className="h-64 rounded-lg overflow-hidden border">
           <MapContainer
             center={currentLocation ? [currentLocation.latitude, currentLocation.longitude] : clusters.length > 0 ? [clusters[0].lat, clusters[0].lon] : [18.9000, 72.2000]}
@@ -433,6 +439,9 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
             {/* Heatmap Layer */}
             <HeatmapLayer points={clusters.map(c => [c.lat, c.lon, (c.count || 0) / 1000])} />
             
+            {/* Marine Boundary Layer */}
+            <MarineBoundaryLayer />
+            
             {/* Current Location Marker */}
             {currentLocation && (
               <Marker 
@@ -441,14 +450,14 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
               >
                 <Popup>
                   <div className="p-2">
-                    <h3 className="font-semibold text-blue-800">Your Location</h3>
+                    <h3 className="font-semibold text-blue-800">{t('home.yourLocation')}</h3>
                     <div className="space-y-1 text-sm">
-                      <p><strong>Latitude:</strong> {currentLocation?.latitude ? formatCoordinate(currentLocation.latitude, 'lat') : 'N/A'}</p>
-                      <p><strong>Longitude:</strong> {currentLocation?.longitude ? formatCoordinate(currentLocation.longitude, 'lng') : 'N/A'}</p>
+                      <p><strong>{t('map.latitude')}:</strong> {currentLocation?.latitude ? formatCoordinate(currentLocation.latitude, 'lat') : t('common.na')}</p>
+                      <p><strong>{t('map.longitude')}:</strong> {currentLocation?.longitude ? formatCoordinate(currentLocation.longitude, 'lng') : t('common.na')}</p>
                       {currentLocation?.accuracy && (
-                        <p><strong>Accuracy:</strong> ±{Math.round(currentLocation.accuracy ?? 0)}m</p>
+                        <p><strong>{t('home.accuracy')}:</strong> ±{Math.round(currentLocation.accuracy ?? 0)}m</p>
                       )}
-                      <p><strong>Updated:</strong> {currentLocation?.timestamp ? new Date(currentLocation.timestamp).toLocaleTimeString() : 'N/A'}</p>
+                      <p><strong>{t('home.updated')}:</strong> {currentLocation?.timestamp ? new Date(currentLocation.timestamp).toLocaleTimeString() : t('common.na')}</p>
                     </div>
                   </div>
                 </Popup>
@@ -465,12 +474,12 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
               >
                 <Popup>
                   <div className="p-2">
-                    <h3 className="font-semibold text-gray-800">Cluster Details</h3>
+                    <h3 className="font-semibold text-gray-800">{t('map.clusterDetails')}</h3>
                     <div className="space-y-1 text-sm">
-                      <p><strong>Latitude:</strong> {cluster.lat}</p>
-                      <p><strong>Longitude:</strong> {cluster.lon}</p>
-                      <p><strong>Avg Depth:</strong> {cluster.avg_depth}m</p>
-                      <p><strong>Count:</strong> {cluster.count}</p>
+                      <p><strong>{t('map.latitude')}:</strong> {cluster.lat}</p>
+                      <p><strong>{t('map.longitude')}:</strong> {cluster.lon}</p>
+                      <p><strong>{t('map.avgDepth')}:</strong> {cluster.avg_depth}m</p>
+                      <p><strong>{t('map.count')}:</strong> {cluster.count}</p>
                     </div>
                   </div>
                 </Popup>
@@ -492,12 +501,12 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
               >
                 <Popup>
                   <div className="p-2">
-                    <h3 className="font-semibold text-gray-800">Fish Density</h3>
+                    <h3 className="font-semibold text-gray-800">{t('fish.fishDensity')}</h3>
                     <div className="space-y-1 text-sm">
-                      <p><strong>Latitude:</strong> {p.lat}</p>
-                      <p><strong>Longitude:</strong> {p.lon}</p>
-                      <p><strong>Avg Depth:</strong> {p.avg_depth}m</p>
-                      <p><strong>Count:</strong> {p.count}</p>
+                      <p><strong>{t('map.latitude')}:</strong> {p.lat}</p>
+                      <p><strong>{t('map.longitude')}:</strong> {p.lon}</p>
+                      <p><strong>{t('map.avgDepth')}:</strong> {p.avg_depth}m</p>
+                      <p><strong>{t('map.count')}:</strong> {p.count}</p>
                     </div>
                   </div>
                 </Popup>
@@ -510,15 +519,15 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
         <div className="mt-3 flex items-center justify-center space-x-4 text-sm">
             <div className="flex items-center space-x-1">
               <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-              <span>High Density</span>
+              <span>{t('fish.highDensity')}</span>
             </div>
           <div className="flex items-center space-x-1">
             <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-              <span>Medium Density</span>
+              <span>{t('fish.mediumDensity')}</span>
           </div>
           <div className="flex items-center space-x-1">
             <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <span>Low Density</span>
+              <span>{t('fish.lowDensity')}</span>
           </div>
         </div>
       </div>
@@ -526,6 +535,7 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
       {/* Journey Tracker Section */}
       <JourneyTracker currentLocation={currentLocation} />
     </div>
+    </>
   )
 }
 

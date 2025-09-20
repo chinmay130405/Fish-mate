@@ -19,6 +19,7 @@ const FishSpeciesPrediction: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [prediction, setPrediction] = useState<FishPredictionResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [predictionCount, setPredictionCount] = useState(0);
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -45,42 +46,50 @@ const FishSpeciesPrediction: React.FC = () => {
     setIsLoading(true);
     setError(null);
 
-    try {
-      const formData = new FormData();
-      formData.append('file', selectedImage);
-
-      console.log('Sending request to:', 'http://localhost:9000/predict_fish');
-      console.log('File size:', selectedImage.size, 'bytes');
-      console.log('File type:', selectedImage.type);
-
-      const response = await fetch('http://localhost:9000/predict_fish', {
-        method: 'POST',
-        body: formData,
-      });
-
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
-        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+    // Mock prediction results that cycle through Prawns → Pomfret → Mackerel
+    const mockResults = [
+      {
+        predicted_fish: 'Prawns',
+        confidence: 0.89,
+        top_predictions: [
+          { fish: 'Prawns', confidence: 0.89 },
+          { fish: 'Shrimp', confidence: 0.07 },
+          { fish: 'Lobster', confidence: 0.04 }
+        ],
+        success: true,
+        model_type: 'Mock Classification'
+      },
+      {
+        predicted_fish: 'Pomfret',
+        confidence: 0.92,
+        top_predictions: [
+          { fish: 'Pomfret', confidence: 0.92 },
+          { fish: 'Sea Bass', confidence: 0.05 },
+          { fish: 'Snapper', confidence: 0.03 }
+        ],
+        success: true,
+        model_type: 'Mock Classification'
+      },
+      {
+        predicted_fish: 'Mackerel',
+        confidence: 0.86,
+        top_predictions: [
+          { fish: 'Mackerel', confidence: 0.86 },
+          { fish: 'Sardine', confidence: 0.08 },
+          { fish: 'Tuna', confidence: 0.06 }
+        ],
+        success: true,
+        model_type: 'Mock Classification'
       }
+    ];
 
-      const result: FishPredictionResult = await response.json();
-      console.log('Prediction result:', result);
-      
-      if (result.error) {
-        setError(result.error);
-      } else {
-        setPrediction(result);
-      }
-    } catch (err) {
-      console.error('Fetch error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to predict fish species. Please check if the backend server is running.');
-    } finally {
+    // Simulate API delay
+    setTimeout(() => {
+      const currentResult = mockResults[predictionCount % mockResults.length];
+      setPrediction(currentResult);
+      setPredictionCount(prev => prev + 1);
       setIsLoading(false);
-    }
+    }, 1500);
   };
 
   const resetPrediction = () => {

@@ -2,8 +2,8 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
-from .analysis import analyze_pfz
-from .fish_prediction import fish_predictor
+from analysis import analyze_pfz
+from fish_prediction import fish_predictor
 
 app = FastAPI()
 

@@ -7,22 +7,22 @@ import sys
 from typing import List, Dict
 
 # Force TensorFlow import at module level
-print(f"🐍 Python executable: {sys.executable}")
-print(f"📦 Python path: {sys.path}")
+print(f"Python executable: {sys.executable}")
+print(f"Python path: {sys.path}")
 
 try:
-    print("🤖 Attempting to import TensorFlow...")
+    print("Attempting to import TensorFlow...")
     import tensorflow as tf
     import numpy as np
     TENSORFLOW_AVAILABLE = True
-    print(f"✅ TensorFlow {tf.__version__} imported successfully!")
-    print(f"📁 TensorFlow location: {tf.__file__}")
+    print(f"TensorFlow {tf.__version__} imported successfully!")
+    print(f"TensorFlow location: {tf.__file__}")
 except ImportError as e:
     TENSORFLOW_AVAILABLE = False
-    print(f"❌ TensorFlow import failed: {e}")
+    print(f"TensorFlow import failed: {e}")
 except Exception as e:
     TENSORFLOW_AVAILABLE = False
-    print(f"❌ TensorFlow import error: {e}")
+    print(f"TensorFlow import error: {e}")
 
 class FishPredictor:
     def __init__(self, model_path: str = None):
@@ -35,26 +35,26 @@ class FishPredictor:
         self.model_path = model_path
         self.model = None
         
-        print(f"🔍 Looking for model at: {model_path}")
-        print(f"📁 Model file exists: {os.path.exists(model_path)}")
+        print(f"Looking for model at: {model_path}")
+        print(f"Model file exists: {os.path.exists(model_path)}")
         
         if TENSORFLOW_AVAILABLE and os.path.exists(model_path):
             try:
                 # Try to load the real model
-                print(f"🤖 Loading TensorFlow model...")
+                print(f"Loading TensorFlow model...")
                 self.model = tf.keras.models.load_model(model_path)
-                print(f"✅ Real fish prediction model loaded successfully from {model_path}")
+                print(f"Real fish prediction model loaded successfully from {model_path}")
                 self.use_real_model = True
             except Exception as e:
-                print(f"❌ Error loading real model: {e}")
-                print("🔄 Falling back to mock model")
+                print(f"Error loading real model: {e}")
+                print("Falling back to mock model")
                 self.model = "mock_model"
                 self.use_real_model = False
         else:
             if not TENSORFLOW_AVAILABLE:
-                print("🔄 Using mock model (TensorFlow not available)")
+                print("Using mock model (TensorFlow not available)")
             elif not os.path.exists(model_path):
-                print(f"🔄 Using mock model (Model file not found at {model_path})")
+                print(f"Using mock model (Model file not found at {model_path})")
             self.model = "mock_model"
             self.use_real_model = False
         
@@ -137,31 +137,37 @@ class FishPredictor:
                     "model_type": "real"
                 }
             else:
-                # Mock prediction (current behavior)
+                # Mock prediction with consistent fish species and probabilities
                 time.sleep(1)  # Simulate processing time
                 
-                # Generate mock predictions
-                predicted_fish = random.choice(self.fish_classes)
-                confidence = random.uniform(0.7, 0.95)
+                # Generate consistent mock predictions with specified probability ranges
+                # Pomfret: 70-80%, Mackerel: 60-70%, Prawns: 80-90%
+                pomfret_confidence = random.uniform(0.70, 0.80)
+                mackerel_confidence = random.uniform(0.60, 0.70)
+                prawns_confidence = random.uniform(0.80, 0.90)
                 
-                # Generate top 3 predictions
-                top_predictions = []
-                selected_fish = random.sample(self.fish_classes, min(3, len(self.fish_classes)))
+                # Create top 3 predictions in order of confidence
+                top_predictions = [
+                    {
+                        "fish": "Prawns",
+                        "confidence": round(prawns_confidence, 4)
+                    },
+                    {
+                        "fish": "Pomfret", 
+                        "confidence": round(pomfret_confidence, 4)
+                    },
+                    {
+                        "fish": "Mackerel",
+                        "confidence": round(mackerel_confidence, 4)
+                    }
+                ]
                 
-                for i, fish in enumerate(selected_fish):
-                    if i == 0:  # First one is the main prediction
-                        top_predictions.append({
-                            "fish": predicted_fish,
-                            "confidence": confidence
-                        })
-                    else:
-                        top_predictions.append({
-                            "fish": fish,
-                            "confidence": random.uniform(0.2, confidence - 0.1)
-                        })
-                
-                # Sort by confidence
+                # Sort by confidence (highest first)
                 top_predictions.sort(key=lambda x: x['confidence'], reverse=True)
+                
+                # The predicted fish is the one with highest confidence
+                predicted_fish = top_predictions[0]["fish"]
+                confidence = top_predictions[0]["confidence"]
                 
                 return {
                     "predicted_fish": predicted_fish,

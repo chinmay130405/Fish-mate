@@ -8,3 +8,7 @@ Pillow
 # tensorflow  # Disabled for demo - uncomment for production ML model
 # numpy       # Disabled for demo - uncomment for production ML model
 # scikit-learn
+Pillow
+# tensorflow  # Disabled for demo - uncomment for production ML model
+# numpy       # Disabled for demo - uncomment for production ML model
+# scikit-learn

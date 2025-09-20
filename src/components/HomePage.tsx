@@ -12,6 +12,7 @@ import JourneyTracker from './JourneyTracker'
 import BoundaryLayer from './BoundaryLayer'
 import BoundaryAlertBar from './BoundaryAlertBar'
 import GeofenceTestPanel from './GeofenceTestPanel'
+import FishSpeciesPrediction from './FishSpeciesPrediction'
 import { geofencingService } from '../services/geofencingService'
 import type { GeofenceAlert } from '../services/geofencingService'
 
@@ -455,6 +456,9 @@ const HomePage = ({ currentLocation, locationPermission }: HomePageProps) => {
           </div>
         )}
       </div>
+
+      {/* Fish Species Prediction Section */}
+      <FishSpeciesPrediction />
 
       {/* Map Section */}
       <div className="bg-white rounded-lg p-4 shadow-sm border">
